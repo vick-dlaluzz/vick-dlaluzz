@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FastWash – Lavandería en Tehuacán, Puebla</title>
+  <meta name="description" content="FastWash es la lavandería más confiable de Tehuacán, Puebla. Servicios de lavado por kilo, express y a domicilio. Varias sucursales." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#inicio" class="nav-logo">
+        <img src="logo.jpeg" alt="FastWash Logo" />
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="#como-funciona">¿Cómo funciona?</a></li>
+        <li><a href="#sucursales">Sucursales</a></li>
+        <li><a href="#pagos">Pagos</a></li>
+        <li><a href="#contacto" class="btn-nav">Contáctanos</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <div class="hero-section-wrapper">
+  <section class="hero" id="inicio">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <span class="hero-badge">✦ Tehuacán, Puebla</span>
+      <h1>Tu ropa,<br/><em>siempre impecable.</em></h1>
+      <p class="hero-subtitle">
+        En <strong>FastWash</strong> combinamos tecnología, rapidez y cuidado profesional para que tu ropa quede perfecta. Varias sucursales en Tehuacán a tu servicio.
+      </p>
+      <div class="hero-actions">
+        <a href="#servicios" class="btn btn-primary">Ver servicios</a>
+        <a href="#sucursales" class="btn btn-outline">Encuentra una sucursal</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card card-1">
+        <span class="card-icon">⚡</span>
+        <span class="card-label">Express<br/><small>mismo día</small></span>
+      </div>
+      <div class="hero-card card-2">
+        <span class="card-icon">⚖️</span>
+        <span class="card-label">Por kilo<br/><small>justo y transparente</small></span>
+      </div>
+      <div class="hero-card card-3">
+        <span class="card-icon">🚚</span>
+        <span class="card-label">A domicilio<br/><small>sin salir de casa</small></span>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <span></span>
+    </div>
+  </section>
+  </div><!-- /hero-section-wrapper -->
+
+  <!-- ===== CONFIANZA STRIP ===== -->
+  <div class="trust-strip">
+    <div class="trust-container">
+      <div class="trust-item"><span class="trust-number">5+</span><span class="trust-label">Sucursales</span></div>
+      <div class="trust-divider"></div>
+      <div class="trust-item"><span class="trust-number">10k+</span><span class="trust-label">Clientes satisfechos</span></div>
+      <div class="trust-divider"></div>
+      <div class="trust-item"><span class="trust-number">8 hrs</span><span class="trust-label">Entrega express</span></div>
+      <div class="trust-divider"></div>
+      <div class="trust-item"><span class="trust-number">100%</span><span class="trust-label">Garantía de calidad</span></div>
+    </div>
+  </div>
+
+  <!-- ===== SERVICIOS ===== -->
+  <section class="section" id="servicios">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Lo que hacemos</span>
+        <h2>Nuestros Servicios</h2>
+        <p>Soluciones de lavandería diseñadas para adaptarse a tu estilo de vida.</p>
+      </div>
+      <div class="services-grid">
+
+        <div class="service-card" data-delay="0">
+          <div class="service-icon-wrap blue">
+            <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5"/><path d="M14 24c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M24 30v-6l-4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </div>
+          <h3>Lavado por Kilo</h3>
+          <p>Paga solo por lo que lavas. Precio justo y transparente por kilogramo. Ideal para cualquier volumen de ropa.</p>
+          <ul class="service-features">
+            <li>Lavado y secado incluido</li>
+            <li>Proceso profesional</li>
+            <li>Precio competitivo</li>
+          </ul>
+          <a href="#contacto" class="service-link">Saber más →</a>
+        </div>
+
+        <div class="service-card featured" data-delay="100">
+          <div class="featured-badge">⚡ Popular</div>
+          <div class="service-icon-wrap gold">
+            <svg viewBox="0 0 48 48" fill="none"><path d="M26 8L14 26h12l-2 14L38 22H26L28 8z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>Servicio Express</h3>
+          <p>¿Necesitas tu ropa lista hoy? Con nuestro servicio express entregamos en 8 horas o menos. Sin esperas, sin sorpresas.</p>
+          <ul class="service-features">
+            <li>Lista en 8 horas o menos</li>
+            <li>Prioridad en proceso</li>
+            <li>Notificación en tiempo real</li>
+          </ul>
+          <a href="#contacto" class="service-link">Saber más →</a>
+        </div>
+
+        <div class="service-card" data-delay="200">
+          <div class="service-icon-wrap teal">
+            <svg viewBox="0 0 48 48" fill="none"><path d="M8 36l6-6 8 4 10-16 6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="10" width="36" height="6" rx="3" stroke="currentColor" stroke-width="2.5"/></svg>
+          </div>
+          <h3>Servicio a Domicilio</h3>
+          <p>Recolectamos tu ropa en la puerta de tu casa y la devolvemos limpia y doblada. Sin moverte de donde estás.</p>
+          <ul class="service-features">
+            <li>Recolección en tu hogar</li>
+            <li>Entrega a domicilio</li>
+            <li>Cobertura en Tehuacán</li>
+          </ul>
+          <a href="#contacto" class="service-link">Saber más →</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CÓMO FUNCIONA ===== -->
+  <section class="section section-alt" id="como-funciona">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Proceso simple</span>
+        <h2>¿Cómo funciona?</h2>
+        <p>Tu ropa limpia en 4 pasos sencillos.</p>
+      </div>
+      <div class="steps-wrapper">
+        <div class="steps-line"></div>
+        <div class="steps-grid">
+          <div class="step">
+            <div class="step-number">01</div>
+            <div class="step-content">
+              <h4>Lleva o agenda</h4>
+              <p>Visita la sucursal más cercana o agenda nuestro servicio a domicilio.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">02</div>
+            <div class="step-content">
+              <h4>Pesamos tu ropa</h4>
+              <p>Pesamos y revisamos tu ropa en tu presencia. Sin cargos ocultos.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">03</div>
+            <div class="step-content">
+              <h4>Lavado profesional</h4>
+              <p>Procesamos tu ropa con detergentes de alta calidad y equipo moderno.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">04</div>
+            <div class="step-content">
+              <h4>Entregamos</h4>
+              <p>Recoge en sucursal o recíbela en tu domicilio. ¡Lista para usar!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== POR QUÉ ELEGIRNOS ===== -->
+  <section class="section" id="por-que">
+    <div class="container">
+      <div class="why-grid">
+        <div class="why-text">
+          <span class="section-tag">Nuestra promesa</span>
+          <h2>Limpieza, rapidez y confianza.</h2>
+          <p>Desde hace años atendemos a los tehuacaneros con el mismo compromiso: ropa perfectamente limpia, entregada a tiempo y tratada con cuidado.</p>
+          <div class="why-list">
+            <div class="why-item">
+              <div class="why-icon">🔬</div>
+              <div>
+                <strong>Detergentes de calidad</strong>
+                <p>Usamos productos que limpian profundo sin dañar las telas.</p>
+              </div>
+            </div>
+            <div class="why-item">
+              <div class="why-icon">🛡️</div>
+              <div>
+                <strong>Tu ropa asegurada</strong>
+                <p>Nos responsabilizamos del cuidado de cada prenda que nos confías.</p>
+              </div>
+            </div>
+            <div class="why-item">
+              <div class="why-icon">🕐</div>
+              <div>
+                <strong>Cumplimos horarios</strong>
+                <p>Respetamos los tiempos prometidos. Tu tiempo es importante.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="why-visual">
+          <div class="why-card-main">
+            <div class="why-stat">
+              <span class="stat-num">+8</span>
+              <span class="stat-desc">años de<br/>experiencia</span>
+            </div>
+            <div class="why-stat-row">
+              <div class="why-badge">✓ Higiene certificada</div>
+              <div class="why-badge">✓ Personal capacitado</div>
+            </div>
+          </div>
+          <div class="why-card-float">
+            <span>⭐⭐⭐⭐⭐</span>
+            <p>"La mejor lavandería de Tehuacán"</p>
+            <small>— Clientes satisfechos</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SUCURSALES ===== -->
+  <section class="section section-alt" id="sucursales">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Encuéntranos</span>
+        <h2>Nuestras Sucursales</h2>
+        <p>Múltiples puntos de atención distribuidos en Tehuacán, Puebla.</p>
+      </div>
+      <div class="branches-grid">
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-number">01</div>
+            <div class="branch-status open">Abierta</div>
+          </div>
+          <h4>Sucursal Centro</h4>
+          <div class="branch-detail">
+            <span class="branch-icon">📍</span>
+            <span>Av. Reforma Norte 142, Col. Centro, Tehuacán, Pue. C.P. 75700</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">🕐</span>
+            <span>Lun–Sáb: 8:00 am – 8:00 pm<br/>Dom: 9:00 am – 3:00 pm</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">📞</span>
+            <span>238 382 1001</span>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-number">02</div>
+            <div class="branch-status open">Abierta</div>
+          </div>
+          <h4>Sucursal Insurgentes</h4>
+          <div class="branch-detail">
+            <span class="branch-icon">📍</span>
+            <span>Blvd. Insurgentes 78, Col. Las Flores, Tehuacán, Pue. C.P. 75755</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">🕐</span>
+            <span>Lun–Sáb: 8:00 am – 8:00 pm<br/>Dom: 9:00 am – 3:00 pm</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">📞</span>
+            <span>238 382 1002</span>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-number">03</div>
+            <div class="branch-status open">Abierta</div>
+          </div>
+          <h4>Sucursal San Lorenzo</h4>
+          <div class="branch-detail">
+            <span class="branch-icon">📍</span>
+            <span>Calle 3 Sur 55, Col. San Lorenzo, Tehuacán, Pue. C.P. 75760</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">🕐</span>
+            <span>Lun–Sáb: 8:00 am – 8:00 pm<br/>Dom: 9:00 am – 3:00 pm</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">📞</span>
+            <span>238 382 1003</span>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-number">04</div>
+            <div class="branch-status open">Abierta</div>
+          </div>
+          <h4>Sucursal Axusco</h4>
+          <div class="branch-detail">
+            <span class="branch-icon">📍</span>
+            <span>Calle Guerrero Nte. 220, Col. Axusco, Tehuacán, Pue. C.P. 75712</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">🕐</span>
+            <span>Lun–Sáb: 8:00 am – 8:00 pm<br/>Dom: 9:00 am – 3:00 pm</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">📞</span>
+            <span>238 382 1004</span>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-number">05</div>
+            <div class="branch-status open">Abierta</div>
+          </div>
+          <h4>Sucursal Moctezuma</h4>
+          <div class="branch-detail">
+            <span class="branch-icon">📍</span>
+            <span>Av. Moctezuma 310, Col. El Riego, Tehuacán, Pue. C.P. 75730</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">🕐</span>
+            <span>Lun–Sáb: 8:00 am – 8:00 pm<br/>Dom: 9:00 am – 3:00 pm</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">📞</span>
+            <span>238 382 1005</span>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-number">06</div>
+            <div class="branch-status open">Abierta</div>
+          </div>
+          <h4>Sucursal Zona Industrial</h4>
+          <div class="branch-detail">
+            <span class="branch-icon">📍</span>
+            <span>Calle Privada del Sol 18, Fracc. Industrial, Tehuacán, Pue. C.P. 75780</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">🕐</span>
+            <span>Lun–Sáb: 7:00 am – 9:00 pm<br/>Dom: 9:00 am – 5:00 pm</span>
+          </div>
+          <div class="branch-detail">
+            <span class="branch-icon">📞</span>
+            <span>238 382 1006</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MÉTODOS DE PAGO ===== -->
+  <section class="section" id="pagos">
+    <div class="container">
+      <div class="payment-wrapper">
+        <div class="payment-text">
+          <span class="section-tag">Facilidades</span>
+          <h2>Métodos de Pago</h2>
+          <p>Aceptamos las formas de pago más comunes para tu comodidad. Sin complicaciones.</p>
+        </div>
+        <div class="payment-cards">
+          <div class="payment-card">
+            <div class="payment-icon">💵</div>
+            <h4>Efectivo</h4>
+            <p>Pago directo en sucursal al momento de la entrega o al dejar tu ropa.</p>
+          </div>
+          <div class="payment-card">
+            <div class="payment-icon">📲</div>
+            <h4>Transferencia Bancaria</h4>
+            <p>Pago por SPEI, CoDi o cualquier transferencia interbancaria. Rápido y seguro.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTACTO / CTA ===== -->
+  <section class="section section-cta" id="contacto">
+    <div class="cta-bg"></div>
+    <div class="container">
+      <div class="cta-wrapper">
+        <div class="cta-text">
+          <span class="section-tag light">¿Listo para empezar?</span>
+          <h2>Contáctanos hoy</h2>
+          <p>Visítanos en cualquiera de nuestras sucursales, llámanos o escríbenos. Siempre hay alguien del equipo FastWash para ayudarte.</p>
+          <div class="cta-contacts">
+            <div class="cta-contact-item">
+              <div class="cta-contact-icon">📱</div>
+              <div>
+                <strong>WhatsApp</strong>
+                <span>238 100 2030</span>
+              </div>
+            </div>
+            <div class="cta-contact-item">
+              <div class="cta-contact-icon">📧</div>
+              <div>
+                <strong>Email</strong>
+                <span>contacto@fastwash.mx</span>
+              </div>
+            </div>
+            <div class="cta-contact-item">
+              <div class="cta-contact-icon">🌐</div>
+              <div>
+                <strong>Redes Sociales</strong>
+                <span>@fastwash.mx</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cta-form-wrap">
+          <form class="contact-form" id="contact-form">
+            <h3>Envíanos un mensaje</h3>
+            <div class="form-group">
+              <label for="nombre">Nombre completo</label>
+              <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required />
+            </div>
+            <div class="form-group">
+              <label for="telefono">Teléfono</label>
+              <input type="tel" id="telefono" name="telefono" placeholder="238 000 0000" />
+            </div>
+            <div class="form-group">
+              <label for="servicio">Servicio de interés</label>
+              <select id="servicio" name="servicio">
+                <option value="">Selecciona un servicio</option>
+                <option>Lavado por kilo</option>
+                <option>Servicio Express</option>
+                <option>Servicio a Domicilio</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="mensaje">Mensaje</label>
+              <textarea id="mensaje" name="mensaje" placeholder="¿En qué podemos ayudarte?" rows="4"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Enviar mensaje</button>
+            <p class="form-note" id="form-success" style="display:none;">✓ Mensaje enviado. Te contactamos pronto.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="logo.jpeg" alt="FastWash" class="footer-logo" />
+          <p>Lavandería profesional con múltiples sucursales en Tehuacán, Puebla. Calidad, rapidez y confianza en cada servicio.</p>
+          <div class="footer-social">
+            <a href="#" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" aria-label="WhatsApp">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h5>Servicios</h5>
+          <ul>
+            <li><a href="#servicios">Lavado por kilo</a></li>
+            <li><a href="#servicios">Express</a></li>
+            <li><a href="#servicios">A domicilio</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h5>Sucursales</h5>
+          <ul>
+            <li><a href="#sucursales">Centro</a></li>
+            <li><a href="#sucursales">Insurgentes</a></li>
+            <li><a href="#sucursales">San Lorenzo</a></li>
+            <li><a href="#sucursales">Axusco</a></li>
+            <li><a href="#sucursales">Moctezuma</a></li>
+            <li><a href="#sucursales">Zona Industrial</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h5>Contacto</h5>
+          <ul>
+            <li><a href="tel:2381002030">238 100 2030</a></li>
+            <li><a href="mailto:contacto@fastwash.mx">contacto@fastwash.mx</a></li>
+            <li><a href="#contacto">Enviar mensaje</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 FastWash – Lavandería. Todos los derechos reservados. Tehuacán, Puebla, México.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
