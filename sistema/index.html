@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FastWash – Sistema Interno</title>
+  <meta name="description" content="Sistema interno para empleados de FastWash. Gestión de órdenes, pedidos y reportes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+  <!-- QR Scanner library -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== TOP HEADER ===== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <a href="../index.html" class="header-logo">
+        <img src="../logo.jpeg" alt="FastWash" />
+        <div class="header-logo-text">
+          <span class="logo-name">FastWash</span>
+          <span class="logo-sub">Sistema Interno</span>
+        </div>
+      </a>
+      <div class="header-right">
+        <div class="user-badge" id="user-badge">
+          <span class="user-avatar" id="user-avatar-icon">👤</span>
+          <span id="user-name-display">Empleado</span>
+          <span class="user-role-badge" id="user-role-label">Empleado</span>
+        </div>
+        <button class="icon-btn" id="logout-btn" title="Cerrar sesión">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div class="login-screen" id="login-screen">
+    <div class="login-card">
+      <img src="../logo.jpeg" alt="FastWash" class="login-logo" />
+      <h1>Acceso al Sistema</h1>
+      <p>Ingresa tus credenciales para continuar</p>
+      <form class="login-form" id="login-form">
+        <div class="form-group">
+          <label for="login-user">Usuario</label>
+          <input type="text" id="login-user" placeholder="tu.nombre" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="login-pass">Contraseña</label>
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required />
+        </div>
+        <p class="login-error" id="login-error"></p>
+        <button type="submit" class="btn btn-primary btn-full">Iniciar sesión</button>
+      </form>
+      <p class="login-hint">Demo: usuario <strong>admin</strong> / <strong>empleado</strong> — contraseña <strong>1234</strong></p>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP (hidden until logged in) ===== -->
+  <main class="app-main" id="app-main" style="display:none">
+
+    <!-- TAB NAV -->
+    <nav class="tab-nav" id="tab-nav">
+      <button class="tab-btn active" data-tab="nueva-orden" id="tab-nueva">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Nueva Orden</span>
+      </button>
+      <button class="tab-btn" data-tab="pedidos" id="tab-pedidos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <span>Pedidos</span>
+      </button>
+      <button class="tab-btn admin-only hidden" data-tab="monitoreo" id="tab-monitoreo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+        <span>Monitoreo</span>
+      </button>
+    </nav>
+
+    <!-- ===================== TAB: NUEVA ORDEN ===================== -->
+    <section class="tab-panel active" id="tab-panel-nueva-orden">
+      <div class="panel-header">
+        <h2>Nueva Orden</h2>
+        <p>Levanta una orden para un cliente</p>
+      </div>
+
+      <form class="order-form" id="order-form">
+
+        <!-- Cliente -->
+        <div class="form-section">
+          <h3 class="form-section-title">
+            <span class="form-section-icon">👤</span> Datos del Cliente
+          </h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-nombre">Nombre completo <span class="required">*</span></label>
+              <input type="text" id="f-nombre" name="nombre" placeholder="Ej. María García" required />
+            </div>
+            <div class="form-group">
+              <label for="f-telefono">Teléfono <span class="required">*</span></label>
+              <input type="tel" id="f-telefono" name="telefono" placeholder="238 000 0000" required />
+            </div>
+          </div>
+        </div>
+
+        <!-- Servicio -->
+        <div class="form-section">
+          <h3 class="form-section-title">
+            <span class="form-section-icon">🧺</span> Detalle del Servicio
+          </h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-servicio">Tipo de servicio <span class="required">*</span></label>
+              <select id="f-servicio" name="servicio" required>
+                <option value="">Seleccionar...</option>
+                <option value="kilo">Lavado por kilo</option>
+                <option value="express">Servicio Express</option>
+                <option value="domicilio">A domicilio</option>
+              </select>
+            </div>
+            <div class="form-group" id="peso-group">
+              <label for="f-peso">Peso aproximado (kg)</label>
+              <input type="number" id="f-peso" name="peso" placeholder="0.0" min="0" step="0.1" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-fecha">Fecha promesa <span class="required">*</span></label>
+              <input type="datetime-local" id="f-fecha" name="fecha" required />
+            </div>
+            <div class="form-group">
+              <label for="f-sucursal">Sucursal <span class="required">*</span></label>
+              <select id="f-sucursal" name="sucursal" required>
+                <option value="">Seleccionar...</option>
+                <option>Centro</option>
+                <option>Insurgentes</option>
+                <option>San Lorenzo</option>
+                <option>Axusco</option>
+                <option>Moctezuma</option>
+                <option>Zona Industrial</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label for="f-instrucciones">Instrucciones especiales</label>
+            <textarea id="f-instrucciones" name="instrucciones" rows="3" placeholder="Ej. Ropa delicada, no usar suavizante, doblar camisas..."></textarea>
+          </div>
+        </div>
+
+        <!-- Pago -->
+        <div class="form-section">
+          <h3 class="form-section-title">
+            <span class="form-section-icon">💳</span> Método de Pago
+          </h3>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="pago" value="efectivo" checked />
+              <span class="radio-card">
+                <span class="radio-icon">💵</span>
+                <span>Efectivo</span>
+              </span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="pago" value="transferencia" />
+              <span class="radio-card">
+                <span class="radio-icon">📲</span>
+                <span>Transferencia</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="reset" class="btn btn-ghost">Limpiar</button>
+          <button type="submit" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Registrar Orden
+          </button>
+        </div>
+
+      </form>
+
+      <!-- Ticket de confirmación -->
+      <div class="ticket-modal" id="ticket-modal" style="display:none">
+        <div class="ticket-overlay" id="ticket-overlay"></div>
+        <div class="ticket-card">
+          <div class="ticket-header">
+            <img src="../logo.jpeg" alt="FastWash" class="ticket-logo" />
+            <div>
+              <h3>FastWash</h3>
+              <p>Comprobante de Orden</p>
+            </div>
+          </div>
+          <div class="ticket-divider dotted"></div>
+          <div class="ticket-body" id="ticket-body"></div>
+          <div class="ticket-divider dotted"></div>
+          <div class="ticket-qr" id="ticket-qr"></div>
+          <div class="ticket-footer">
+            <p>¡Gracias por confiar en FastWash!</p>
+            <p>Tehuacán, Puebla</p>
+          </div>
+          <div class="ticket-actions">
+            <button class="btn btn-ghost" id="ticket-print">🖨️ Imprimir</button>
+            <button class="btn btn-primary" id="ticket-close">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TAB: PEDIDOS ===================== -->
+    <section class="tab-panel" id="tab-panel-pedidos">
+      <div class="panel-header">
+        <h2>Pedidos</h2>
+        <p>Busca y gestiona las órdenes activas</p>
+      </div>
+
+      <!-- Barra de búsqueda -->
+      <div class="search-bar-wrap">
+        <div class="search-bar">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="search" id="search-input" placeholder="Buscar por ID, nombre o teléfono..." />
+          <button class="qr-scan-btn" id="qr-scan-btn" title="Escanear QR">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3M18 21h3M16 16v-3M8 3H3v5"/></svg>
+          </button>
+        </div>
+        <div class="filter-chips">
+          <button class="chip active" data-filter="all">Todos</button>
+          <button class="chip" data-filter="pendiente">Pendiente</button>
+          <button class="chip" data-filter="proceso">En proceso</button>
+          <button class="chip" data-filter="listo">Listo</button>
+          <button class="chip" data-filter="entregado">Entregado</button>
+        </div>
+      </div>
+
+      <!-- QR Scanner panel -->
+      <div class="qr-panel" id="qr-panel" style="display:none">
+        <div class="qr-panel-inner">
+          <div class="qr-panel-header">
+            <span>📷 Escanear código QR</span>
+            <button class="icon-btn" id="qr-close-btn">✕</button>
+          </div>
+          <div id="qr-reader"></div>
+          <p class="qr-hint">Apunta la cámara al código QR de la orden</p>
+        </div>
+      </div>
+
+      <!-- Grid de pedidos -->
+      <div class="orders-summary">
+        <div class="summary-chip"><span id="count-total">0</span> total</div>
+        <div class="summary-chip pending"><span id="count-pending">0</span> pendientes</div>
+        <div class="summary-chip process"><span id="count-process">0</span> en proceso</div>
+        <div class="summary-chip ready"><span id="count-ready">0</span> listos</div>
+      </div>
+
+      <div class="orders-grid" id="orders-grid">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="empty-state" id="empty-state" style="display:none">
+        <span>📦</span>
+        <p>No se encontraron órdenes</p>
+      </div>
+
+      <!-- Modal detalle de orden -->
+      <div class="order-detail-modal" id="order-detail-modal" style="display:none">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3 id="modal-title">Detalle de Orden</h3>
+            <button class="icon-btn" id="modal-close">✕</button>
+          </div>
+          <div class="modal-body" id="modal-body"></div>
+          <div class="modal-footer">
+            <label class="modal-label">Cambiar estatus:</label>
+            <select id="modal-status-select" class="status-select">
+              <option value="pendiente">Pendiente</option>
+              <option value="proceso">En proceso</option>
+              <option value="listo">Listo</option>
+              <option value="entregado">Entregado</option>
+            </select>
+            <button class="btn btn-primary" id="modal-save-status">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TAB: MONITOREO (ADMIN) ===================== -->
+    <section class="tab-panel" id="tab-panel-monitoreo">
+      <div class="panel-header">
+        <h2>Monitoreo</h2>
+        <p>Panel de administración y reportes</p>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon blue">📋</div>
+          <div class="kpi-info">
+            <span class="kpi-label">Órdenes hoy</span>
+            <span class="kpi-value" id="kpi-today">0</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green">✅</div>
+          <div class="kpi-info">
+            <span class="kpi-label">Entregadas</span>
+            <span class="kpi-value" id="kpi-delivered">0</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon yellow">⏳</div>
+          <div class="kpi-info">
+            <span class="kpi-label">Pendientes</span>
+            <span class="kpi-value" id="kpi-pending">0</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon teal">💰</div>
+          <div class="kpi-info">
+            <span class="kpi-label">Ingreso estimado</span>
+            <span class="kpi-value" id="kpi-revenue">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Servicios breakdown -->
+      <div class="monitor-section">
+        <h3 class="monitor-section-title">Órdenes por servicio (hoy)</h3>
+        <div class="service-breakdown">
+          <div class="breakdown-item">
+            <div class="breakdown-bar-wrap">
+              <div class="breakdown-bar blue" id="bar-kilo" style="width:0%"></div>
+            </div>
+            <div class="breakdown-info">
+              <span>Lavado por kilo</span>
+              <strong id="count-kilo">0</strong>
+            </div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-bar-wrap">
+              <div class="breakdown-bar gold" id="bar-express" style="width:0%"></div>
+            </div>
+            <div class="breakdown-info">
+              <span>Express</span>
+              <strong id="count-express">0</strong>
+            </div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-bar-wrap">
+              <div class="breakdown-bar teal" id="bar-domicilio" style="width:0%"></div>
+            </div>
+            <div class="breakdown-info">
+              <span>A domicilio</span>
+              <strong id="count-domicilio">0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Corte de caja -->
+      <div class="monitor-section">
+        <h3 class="monitor-section-title">Corte de Caja</h3>
+        <div class="corte-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="corte-fecha">Fecha del corte</label>
+              <input type="date" id="corte-fecha" />
+            </div>
+            <div class="form-group">
+              <label for="corte-efectivo">Efectivo recibido ($)</label>
+              <input type="number" id="corte-efectivo" placeholder="0.00" min="0" step="0.01" />
+            </div>
+            <div class="form-group">
+              <label for="corte-transferencia">Transferencias ($)</label>
+              <input type="number" id="corte-transferencia" placeholder="0.00" min="0" step="0.01" />
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label for="corte-notas">Notas del corte</label>
+            <textarea id="corte-notas" rows="2" placeholder="Observaciones, diferencias, etc."></textarea>
+          </div>
+          <div class="corte-total-row">
+            <span>Total del corte:</span>
+            <strong class="corte-total" id="corte-total-display">$0.00</strong>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" id="corte-reset-btn">Limpiar</button>
+            <button class="btn btn-primary" id="corte-save-btn">
+              💾 Guardar corte
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reportes -->
+      <div class="monitor-section">
+        <h3 class="monitor-section-title">Generar Reporte</h3>
+        <div class="report-options">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="report-from">Desde</label>
+              <input type="date" id="report-from" />
+            </div>
+            <div class="form-group">
+              <label for="report-to">Hasta</label>
+              <input type="date" id="report-to" />
+            </div>
+            <div class="form-group">
+              <label for="report-sucursal">Sucursal</label>
+              <select id="report-sucursal">
+                <option value="all">Todas</option>
+                <option>Centro</option>
+                <option>Insurgentes</option>
+                <option>San Lorenzo</option>
+                <option>Axusco</option>
+                <option>Moctezuma</option>
+                <option>Zona Industrial</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" id="report-csv-btn">📄 Exportar CSV</button>
+            <button class="btn btn-primary" id="report-pdf-btn">📑 Generar PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial de cortes -->
+      <div class="monitor-section">
+        <h3 class="monitor-section-title">Historial de Cortes</h3>
+        <div class="cuts-list" id="cuts-list">
+          <p class="no-data">No hay cortes registrados aún.</p>
+        </div>
+      </div>
+
+      <!-- Órdenes recientes del día -->
+      <div class="monitor-section">
+        <h3 class="monitor-section-title">Actividad reciente (hoy)</h3>
+        <div class="activity-list" id="activity-list">
+          <p class="no-data">Sin actividad hoy.</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Bottom safe area spacer for mobile -->
+  <div class="bottom-spacer"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
