@@ -1,26 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FastWash – Sistema Interno</title>
-  <meta name="description" content="Sistema interno para empleados de FastWash. Gestión de órdenes, pedidos y reportes." />
+  <title>WashTime – Sistema Interno</title>
+  <meta name="description"
+    content="Sistema interno para empleados de WashTime. Gestión de órdenes, pedidos y reportes." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap"
+    rel="stylesheet" />
   <!-- QR Scanner library -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
 
   <!-- ===== TOP HEADER ===== -->
   <header class="app-header">
     <div class="header-inner">
       <a href="../index.html" class="header-logo">
-        <img src="../logo.jpeg" alt="FastWash" />
+        <img src="../logo.jpeg" alt="WashTime" />
         <div class="header-logo-text">
-          <span class="logo-name">FastWash</span>
+          <span class="logo-name">WashTime</span>
           <span class="logo-sub">Sistema Interno</span>
         </div>
       </a>
@@ -31,7 +36,9 @@
           <span class="user-role-badge" id="user-role-label">Empleado</span>
         </div>
         <button class="icon-btn" id="logout-btn" title="Cerrar sesión">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+          </svg>
         </button>
       </div>
     </div>
@@ -40,7 +47,7 @@
   <!-- ===== LOGIN SCREEN ===== -->
   <div class="login-screen" id="login-screen">
     <div class="login-card">
-      <img src="../logo.jpeg" alt="FastWash" class="login-logo" />
+      <img src="../logo.jpeg" alt="WashTime" class="login-logo" />
       <h1>Acceso al Sistema</h1>
       <p>Ingresa tus credenciales para continuar</p>
       <form class="login-form" id="login-form">
@@ -55,7 +62,9 @@
         <p class="login-error" id="login-error"></p>
         <button type="submit" class="btn btn-primary btn-full">Iniciar sesión</button>
       </form>
-      <p class="login-hint">Demo: usuario <strong>admin</strong> / <strong>empleado</strong> — contraseña <strong>1234</strong></p>
+      <p class="login-hint">Demo: usuario <strong>admin</strong> / <strong>empleado</strong> — contraseña
+        <strong>1234</strong>
+      </p>
     </div>
   </div>
 
@@ -65,15 +74,22 @@
     <!-- TAB NAV -->
     <nav class="tab-nav" id="tab-nav">
       <button class="tab-btn active" data-tab="nueva-orden" id="tab-nueva">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
         <span>Nueva Orden</span>
       </button>
       <button class="tab-btn" data-tab="pedidos" id="tab-pedidos">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18M9 21V9" />
+        </svg>
         <span>Pedidos</span>
       </button>
       <button class="tab-btn admin-only hidden" data-tab="monitoreo" id="tab-monitoreo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
+        </svg>
         <span>Monitoreo</span>
       </button>
     </nav>
@@ -144,7 +160,8 @@
           </div>
           <div class="form-group full-width">
             <label for="f-instrucciones">Instrucciones especiales</label>
-            <textarea id="f-instrucciones" name="instrucciones" rows="3" placeholder="Ej. Ropa delicada, no usar suavizante, doblar camisas..."></textarea>
+            <textarea id="f-instrucciones" name="instrucciones" rows="3"
+              placeholder="Ej. Ropa delicada, no usar suavizante, doblar camisas..."></textarea>
           </div>
         </div>
 
@@ -174,7 +191,9 @@
         <div class="form-actions">
           <button type="reset" class="btn btn-ghost">Limpiar</button>
           <button type="submit" class="btn btn-primary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
             Registrar Orden
           </button>
         </div>
@@ -186,9 +205,9 @@
         <div class="ticket-overlay" id="ticket-overlay"></div>
         <div class="ticket-card">
           <div class="ticket-header">
-            <img src="../logo.jpeg" alt="FastWash" class="ticket-logo" />
+            <img src="../logo.jpeg" alt="WashTime" class="ticket-logo" />
             <div>
-              <h3>FastWash</h3>
+              <h3>WashTime</h3>
               <p>Comprobante de Orden</p>
             </div>
           </div>
@@ -197,7 +216,7 @@
           <div class="ticket-divider dotted"></div>
           <div class="ticket-qr" id="ticket-qr"></div>
           <div class="ticket-footer">
-            <p>¡Gracias por confiar en FastWash!</p>
+            <p>¡Gracias por confiar en WashTime!</p>
             <p>Tehuacán, Puebla</p>
           </div>
           <div class="ticket-actions">
@@ -218,10 +237,18 @@
       <!-- Barra de búsqueda -->
       <div class="search-bar-wrap">
         <div class="search-bar">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
           <input type="search" id="search-input" placeholder="Buscar por ID, nombre o teléfono..." />
           <button class="qr-scan-btn" id="qr-scan-btn" title="Escanear QR">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3M18 21h3M16 16v-3M8 3H3v5"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="5" height="5" />
+              <rect x="16" y="3" width="5" height="5" />
+              <rect x="3" y="16" width="5" height="5" />
+              <path d="M21 16h-3v3M18 21h3M16 16v-3M8 3H3v5" />
+            </svg>
           </button>
         </div>
         <div class="filter-chips">
@@ -451,4 +478,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
