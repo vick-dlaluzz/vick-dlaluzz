@@ -4,21 +4,152 @@
    ============================================== */
 
 // ============================================
-//  DEMO USERS
+//  BRANCHES & USERS
 // ============================================
+const BRANCHES = [
+  { id: 'centro',       name: 'Centro',         address: 'Av. Reforma 120, Col. Centro' },
+  { id: 'insurgentes',  name: 'Insurgentes',     address: 'Blvd. Insurgentes 450' },
+  { id: 'san-lorenzo',  name: 'San Lorenzo',     address: 'Calle Morelos 33, San Lorenzo' },
+  { id: 'axusco',       name: 'Axusco',          address: 'Av. Axusco 88, Tehuacán' },
+  { id: 'moctezuma',    name: 'Moctezuma',       address: 'Blvd. Moctezuma 210' },
+  { id: 'industrial',   name: 'Zona Industrial', address: 'Calle 5 de Mayo 300, Z. Ind.' },
+];
+
 const USERS = [
-  { username: 'admin',    password: '1234', role: 'admin',    name: 'Administrador' },
-  { username: 'empleado', password: '1234', role: 'empleado', name: 'Empleado' },
+  // Centro
+  { username: 'admin.centro',    password: '1234', role: 'admin',    name: 'Carlos Méndez',   branch: 'centro',      avatar: '👨‍💼' },
+  { username: 'emp1.centro',     password: '1234', role: 'empleado', name: 'Sofía Ramos',     branch: 'centro',      avatar: '👩‍💼' },
+  { username: 'emp2.centro',     password: '1234', role: 'empleado', name: 'Luis Torres',     branch: 'centro',      avatar: '👨‍🔧' },
+  // Insurgentes
+  { username: 'admin.insurgentes',password:'1234', role: 'admin',    name: 'Ana Flores',      branch: 'insurgentes', avatar: '👩‍💼' },
+  { username: 'emp1.insurgentes', password:'1234', role: 'empleado', name: 'Javier López',    branch: 'insurgentes', avatar: '👨‍🔧' },
+  // San Lorenzo
+  { username: 'admin.sanlorenzo', password:'1234', role: 'admin',    name: 'María García',    branch: 'san-lorenzo', avatar: '👩‍💼' },
+  { username: 'emp1.sanlorenzo',  password:'1234', role: 'empleado', name: 'Pedro Sánchez',   branch: 'san-lorenzo', avatar: '👨‍🔧' },
+  // Axusco
+  { username: 'admin.axusco',    password: '1234', role: 'admin',    name: 'Diego Ruiz',      branch: 'axusco',      avatar: '👨‍💼' },
+  { username: 'emp1.axusco',     password: '1234', role: 'empleado', name: 'Elena Vega',      branch: 'axusco',      avatar: '👩‍🔧' },
+  // Moctezuma
+  { username: 'admin.moctezuma', password: '1234', role: 'admin',    name: 'Patricia Cruz',   branch: 'moctezuma',   avatar: '👩‍💼' },
+  { username: 'emp1.moctezuma',  password: '1234', role: 'empleado', name: 'Roberto Díaz',    branch: 'moctezuma',   avatar: '👨‍🔧' },
+  // Zona Industrial
+  { username: 'admin.industrial',password: '1234', role: 'admin',    name: 'Fernando Gil',    branch: 'industrial',  avatar: '👨‍💼' },
+  { username: 'emp1.industrial', password: '1234', role: 'empleado', name: 'Valentina Mora',  branch: 'industrial',  avatar: '👩‍🔧' },
 ];
 
 // ============================================
 //  STATE
 // ============================================
-let currentUser  = null;
-let orders       = loadOrders();
-let cuts         = loadCuts();
-let activeFilter = 'all';
-let qrScanner    = null;
+let currentUser   = null;
+let selectedBranch = null;
+let selectedLoginUser = null;
+let orders        = loadOrders();
+let cuts          = loadCuts();
+let activeFilter  = 'all';
+let qrScanner     = null;
+
+// ============================================
+//  AUTH — 2-STEP BRANCH LOGIN
+// ============================================
+const loginScreen  = document.getElementById('login-screen');
+const appMain      = document.getElementById('app-main');
+const loginForm    = document.getElementById('login-form');
+const loginError   = document.getElementById('login-error');
+
+// Step 1: render branch grid
+function renderBranchGrid() {
+  const grid = document.getElementById('branch-grid');
+  grid.innerHTML = BRANCHES.map(b => `
+    <button class="branch-card" data-branch="${b.id}">
+      <span class="branch-icon">📍</span>
+      <strong>${b.name}</strong>
+      <span>${b.address}</span>
+    </button>
+  `).join('');
+
+  grid.querySelectorAll('.branch-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedBranch = BRANCHES.find(b => b.id === btn.dataset.branch);
+      document.getElementById('login-step-branch').style.display = 'none';
+      document.getElementById('login-step-user').style.display   = 'block';
+      document.getElementById('login-subtitle').textContent = `Sucursal: ${selectedBranch.name}`;
+      renderUserCards();
+    });
+  });
+}
+
+// Step 2: render user cards for selected branch
+function renderUserCards() {
+  const branchUsers = USERS.filter(u => u.branch === selectedBranch.id);
+  const container   = document.getElementById('user-cards');
+  container.innerHTML = branchUsers.map(u => `
+    <button class="user-card ${u.role === 'admin' ? 'admin' : ''}" data-username="${u.username}" type="button">
+      <span class="user-card-avatar">${u.avatar}</span>
+      <div>
+        <strong>${u.name}</strong>
+        <span>${u.role === 'admin' ? 'Admin' : 'Empleado'}</span>
+      </div>
+    </button>
+  `).join('');
+
+  selectedLoginUser = null;
+  container.querySelectorAll('.user-card').forEach(card => {
+    card.addEventListener('click', () => {
+      container.querySelectorAll('.user-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedLoginUser = USERS.find(u => u.username === card.dataset.username);
+      document.getElementById('login-pass').focus();
+    });
+  });
+}
+
+// Back button
+document.getElementById('back-branch-btn').addEventListener('click', () => {
+  selectedBranch    = null;
+  selectedLoginUser = null;
+  document.getElementById('login-step-user').style.display   = 'none';
+  document.getElementById('login-step-branch').style.display = 'block';
+  document.getElementById('login-subtitle').textContent = 'Selecciona tu sucursal para continuar';
+});
+
+// Submit PIN
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const pass = document.getElementById('login-pass').value;
+  if (!selectedLoginUser) {
+    loginError.textContent = 'Selecciona un usuario.';
+    setTimeout(() => { loginError.textContent = ''; }, 3000);
+    return;
+  }
+  if (selectedLoginUser.password !== pass) {
+    loginError.textContent = 'PIN incorrecto.';
+    setTimeout(() => { loginError.textContent = ''; }, 3000);
+    return;
+  }
+  currentUser = { ...selectedLoginUser, branchName: selectedBranch.name };
+  loginScreen.style.display = 'none';
+  appMain.style.display     = 'block';
+  loginForm.reset();
+  initApp();
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  currentUser       = null;
+  selectedBranch    = null;
+  selectedLoginUser = null;
+  loginScreen.style.display = 'flex';
+  appMain.style.display     = 'none';
+  loginForm.reset();
+  // Reset to step 1
+  document.getElementById('login-step-user').style.display   = 'none';
+  document.getElementById('login-step-branch').style.display = 'block';
+  document.getElementById('login-subtitle').textContent = 'Selecciona tu sucursal para continuar';
+});
+
+// Init branch grid on load
+renderBranchGrid();
+
+
 
 // ============================================
 //  UTILS
@@ -54,45 +185,16 @@ function saveCuts() {
   localStorage.setItem('fw_cuts', JSON.stringify(cuts));
 }
 
-// ============================================
-//  AUTH
-// ============================================
-const loginScreen = document.getElementById('login-screen');
-const appMain   = document.getElementById('app-main');
-const loginForm = document.getElementById('login-form');
-const loginError = document.getElementById('login-error');
-
-loginForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const user = document.getElementById('login-user').value.trim().toLowerCase();
-  const pass = document.getElementById('login-pass').value;
-  const found = USERS.find(u => u.username === user && u.password === pass);
-  if (found) {
-    currentUser = found;
-    loginScreen.style.display = 'none';
-    appMain.style.display = 'block';
-    initApp();
-  } else {
-    loginError.textContent = 'Usuario o contraseña incorrectos.';
-    setTimeout(() => { loginError.textContent = ''; }, 3000);
-  }
-});
-
-document.getElementById('logout-btn').addEventListener('click', () => {
-  currentUser = null;
-  loginScreen.style.display = 'flex';
-  appMain.style.display = 'none';
-  loginForm.reset();
-});
 
 // ============================================
 //  INIT APP AFTER LOGIN
 // ============================================
 function initApp() {
-  // Update header user info
+  // Update header: user name, role, and branch
   document.getElementById('user-name-display').textContent = currentUser.name;
   const roleLabel = document.getElementById('user-role-label');
   roleLabel.textContent = currentUser.role === 'admin' ? 'Admin' : 'Empleado';
+  document.getElementById('header-branch-label').textContent = currentUser.branchName;
   if (currentUser.role === 'admin') {
     roleLabel.classList.add('admin');
     document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
@@ -177,10 +279,20 @@ function setupOrderForm() {
   const servicioSel  = document.getElementById('f-servicio');
   const pesoInput    = document.getElementById('f-peso');
   const estimateBox  = document.getElementById('order-estimate-box');
+  const domSection   = document.getElementById('domicilio-section');
+  const calleInput   = document.getElementById('f-calle');
 
   // Pre-fill datetime to now + 8 hours
   const fechaInput = document.getElementById('f-fecha');
   fechaInput.value = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16);
+
+  // Toggle domicilio address section
+  servicioSel.addEventListener('change', () => {
+    const isDom = servicioSel.value === 'domicilio';
+    domSection.style.display = isDom ? 'block' : 'none';
+    calleInput.required = isDom;
+    updateOrderEstimate();
+  });
 
   function updateOrderEstimate() {
     const p       = loadPrices();
@@ -189,7 +301,7 @@ function setupOrderForm() {
     const total   = calcOrderTotal(serv, kg);
     if (!serv || total === null) { estimateBox.style.display = 'none'; return; }
 
-    const label = document.getElementById('oe-label');
+    const label    = document.getElementById('oe-label');
     const desglose = document.getElementById('oe-desglose');
     const totalEl  = document.getElementById('oe-total');
 
@@ -204,24 +316,32 @@ function setupOrderForm() {
     estimateBox.style.display = 'block';
   }
 
-  servicioSel.addEventListener('change', updateOrderEstimate);
   pesoInput.addEventListener('input', updateOrderEstimate);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const data  = Object.fromEntries(new FormData(form));
     const total = calcOrderTotal(data.servicio, data.peso);
+    // Build full name from 3 fields
+    const nombre = [data.nombre, data.appaterno, data.apmaterno].filter(Boolean).join(' ');
+    // Build address for domicilio
+    const direccion = data.servicio === 'domicilio'
+      ? [data.calle, data.colonia, data.referencias].filter(Boolean).join(', ')
+      : null;
     const order = {
       id:           genId(),
-      nombre:       data.nombre,
+      nombre,
+      appaterno:    data.appaterno,
+      apmaterno:    data.apmaterno || '',
       telefono:     data.telefono,
       servicio:     data.servicio,
       peso:         data.peso || null,
       fecha:        data.fecha,
-      sucursal:     data.sucursal,
+      sucursal:     currentUser.branchName,
       instrucciones:data.instrucciones || '',
+      direccion,
       pago:         data.pago,
-      total:        total,
+      total,
       status:       'pendiente',
       creado:       new Date().toISOString(),
       creadoPor:    currentUser.name,
@@ -229,6 +349,8 @@ function setupOrderForm() {
     orders.unshift(order);
     saveOrders();
     estimateBox.style.display = 'none';
+    domSection.style.display  = 'none';
+    calleInput.required = false;
     showTicket(order);
     form.reset();
     fechaInput.value = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16);
@@ -255,7 +377,8 @@ function showTicket(order) {
     <div class="ticket-row"><span>Teléfono</span><span>${order.telefono}</span></div>
     <div class="ticket-row"><span>Servicio</span><span>${servicioLabel}</span></div>
     ${order.peso ? `<div class="ticket-row"><span>Peso</span><span>${order.peso} kg</span></div>` : ''}
-    <div class="ticket-row"><span>Entrega</span><span>${fmtDate(order.fecha)}</span></div>
+    ${order.direccion ? `<div class="ticket-row"><span>Entrega en</span><span>${order.direccion}</span></div>` : ''}
+    <div class="ticket-row"><span>Fecha promesa</span><span>${fmtDate(order.fecha)}</span></div>
     <div class="ticket-row"><span>Sucursal</span><span>${order.sucursal}</span></div>
     <div class="ticket-row"><span>Pago</span><span>${order.pago}</span></div>
     ${order.instrucciones ? `<div class="ticket-row"><span>Notas</span><span>${order.instrucciones}</span></div>` : ''}
@@ -306,14 +429,16 @@ const SERVICE_LABELS = {
 
 function filteredOrders() {
   const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const branchName = currentUser?.branchName;
   return orders.filter(o => {
+    const matchBranch = !branchName || o.sucursal === branchName;
     const matchFilter = activeFilter === 'all' || o.status === activeFilter;
     const matchSearch = !q ||
       o.id.toLowerCase().includes(q) ||
       o.nombre.toLowerCase().includes(q) ||
       o.telefono.includes(q) ||
       o.status.includes(q);
-    return matchFilter && matchSearch;
+    return matchBranch && matchFilter && matchSearch;
   });
 }
 
@@ -806,13 +931,19 @@ function getMachineStatus(m) {
 }
 
 // ---- Machines Board (real-time status) ----
+function branchMachines() {
+  const bid = currentUser?.branch;
+  return bid ? machinesCfg.filter(m => !m.sucursal || m.sucursal === bid) : machinesCfg;
+}
+
 function renderMachinesBoard() {
   const board = document.getElementById('machines-board');
-  if (machinesCfg.length === 0) {
-    board.innerHTML = '<p class="no-data">No hay máquinas configuradas. Ve a la pestaña ⚙️ Configurar.</p>';
+  const visible = branchMachines();
+  if (visible.length === 0) {
+    board.innerHTML = '<p class="no-data">No hay máquinas configuradas para esta sucursal.</p>';
     return;
   }
-  board.innerHTML = machinesCfg.map(m => {
+  board.innerHTML = visible.map(m => {
     const status = getMachineStatus(m);
     const isLibre = status === 'libre';
     const activeCycle = isLibre ? null : cycles.find(c => c.machineId === m.id && c.status === 'en-uso');
@@ -850,10 +981,11 @@ function renderMachinesBoard() {
 }
 
 function renderMachineSummary() {
-  const total  = machinesCfg.length;
-  const enUso  = machinesCfg.filter(m => getMachineStatus(m) === 'en-uso').length;
+  const bm     = branchMachines();
+  const total  = bm.length;
+  const enUso  = bm.filter(m => getMachineStatus(m) === 'en-uso').length;
   const libres = total - enUso;
-  const hoy    = ciclosHoy().length;
+  const hoy    = ciclosHoy().filter(c => bm.some(m => m.id === c.machineId)).length;
   document.getElementById('machine-summary').innerHTML = `
     <div class="machine-summary-chips">
       <div class="msummary-chip libre"><span class="msum-num">${libres}</span><span>Libres</span></div>
@@ -868,12 +1000,14 @@ function populateCicloSelect() {
   const sel = document.getElementById('c-maquina');
   const prev = sel.value;
   sel.innerHTML = '<option value="">Seleccionar máquina libre...</option>';
-  machinesCfg.filter(m => getMachineStatus(m) === 'libre').forEach(m => {
-    const opt = document.createElement('option');
-    opt.value = m.id;
-    opt.textContent = `${m.nombre} – ${m.kg} kg — $${m.precio}`;
-    sel.appendChild(opt);
-  });
+  branchMachines()
+    .filter(m => getMachineStatus(m) === 'libre')
+    .forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.nombre} – ${m.kg} kg — $${m.precio}`;
+      sel.appendChild(opt);
+    });
   if (prev) sel.value = prev;
   updateCicloPrecio();
 }
@@ -897,12 +1031,11 @@ function setupCicloForm() {
   document.getElementById('ciclo-form').addEventListener('submit', e => {
     e.preventDefault();
     const mid      = document.getElementById('c-maquina').value;
-    const sucursal = document.getElementById('c-sucursal').value;
     const nombre   = document.getElementById('c-nombre').value.trim();
     const telefono = document.getElementById('c-telefono').value.trim();
     const pago     = document.querySelector('[name="c-pago"]:checked')?.value || 'efectivo';
 
-    if (!mid || !sucursal) { showToast('⚠️ Selecciona máquina y sucursal'); return; }
+    if (!mid) { showToast('⚠️ Selecciona una máquina'); return; }
 
     const m = machinesCfg.find(x => x.id === mid);
     if (!m) return;
@@ -915,7 +1048,7 @@ function setupCicloForm() {
       precio:     m.precio,
       nombre:     nombre || 'Sin nombre',
       telefono:   telefono || '',
-      sucursal:   sucursal,
+      sucursal:   currentUser.branchName,
       pago:       pago,
       inicio:     new Date().toISOString(),
       fin:        null,
@@ -1112,17 +1245,19 @@ function setupConfigMachines() {
     const nombre = document.getElementById('cfg-nombre').value.trim();
     const kg     = parseFloat(document.getElementById('cfg-kg').value);
     const precio = parseFloat(document.getElementById('cfg-precio').value);
+    const sucursal = document.getElementById('cfg-sucursal').value || '';
     if (!nombre || !kg || !precio) { showToast('⚠️ Completa todos los campos'); return; }
 
     const newMachine = {
       id:     'M' + Date.now().toString(36).toUpperCase().slice(-5),
-      nombre, kg, precio,
+      nombre, kg, precio, sucursal,
     };
     machinesCfg.push(newMachine);
     saveMachinesCfg();
-    document.getElementById('cfg-nombre').value  = '';
-    document.getElementById('cfg-kg').value      = '';
-    document.getElementById('cfg-precio').value  = '';
+    document.getElementById('cfg-nombre').value    = '';
+    document.getElementById('cfg-kg').value        = '';
+    document.getElementById('cfg-precio').value    = '';
+    document.getElementById('cfg-sucursal').value  = '';
     renderConfigList();
     renderMachinesBoard();
     renderMachineSummary();
@@ -1138,18 +1273,20 @@ function renderConfigList() {
     list.innerHTML = '<p class="no-data">No hay máquinas. Agrega una arriba.</p>';
     return;
   }
-  list.innerHTML = machinesCfg.map(m => `
+  list.innerHTML = machinesCfg.map(m => {
+    const branchLabel = BRANCHES.find(b => b.id === m.sucursal)?.name || 'Todas las sucursales';
+    return `
     <div class="cfg-machine-row">
       <div class="cfg-machine-info">
         <span class="cfg-machine-name">${m.nombre}</span>
-        <span class="cfg-machine-meta">${m.kg} kg · $${m.precio}/ciclo</span>
+        <span class="cfg-machine-meta">${m.kg} kg · $${m.precio}/ciclo · 📍 ${branchLabel}</span>
       </div>
       <div class="cfg-machine-actions">
         <button class="btn btn-ghost btn-sm cfg-edit-btn" data-mid="${m.id}">✏️</button>
         <button class="btn btn-ghost btn-sm cfg-del-btn" data-mid="${m.id}" style="color:var(--red-500)">🗑</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   // Edit inline
   list.querySelectorAll('.cfg-edit-btn').forEach(btn => {

@@ -26,7 +26,7 @@
         <img src="../logo.jpeg" alt="WashTime" />
         <div class="header-logo-text">
           <span class="logo-name">WashTime</span>
-          <span class="logo-sub">Sistema Interno</span>
+          <span class="logo-sub" id="header-branch-label">Sistema Interno</span>
         </div>
       </a>
       <div class="header-right">
@@ -49,22 +49,31 @@
     <div class="login-card">
       <img src="../logo.jpeg" alt="WashTime" class="login-logo" />
       <h1>Acceso al Sistema</h1>
-      <p>Ingresa tus credenciales para continuar</p>
-      <form class="login-form" id="login-form">
-        <div class="form-group">
-          <label for="login-user">Usuario</label>
-          <input type="text" id="login-user" placeholder="tu.nombre" autocomplete="username" required />
+      <p id="login-subtitle">Selecciona tu sucursal para continuar</p>
+
+      <!-- Step 1: Branch selector -->
+      <div id="login-step-branch">
+        <div class="branch-grid" id="branch-grid">
+          <!-- Populated by JS -->
         </div>
-        <div class="form-group">
-          <label for="login-pass">Contraseña</label>
-          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required />
+      </div>
+
+      <!-- Step 2: User + PIN -->
+      <div id="login-step-user" style="display:none">
+        <button class="back-branch-btn" id="back-branch-btn">← Cambiar sucursal</button>
+        <p class="login-section-label">Selecciona tu usuario</p>
+        <div class="user-cards" id="user-cards">
+          <!-- Populated by JS -->
         </div>
-        <p class="login-error" id="login-error"></p>
-        <button type="submit" class="btn btn-primary btn-full">Iniciar sesión</button>
-      </form>
-      <p class="login-hint">Demo: usuario <strong>admin</strong> / <strong>empleado</strong> — contraseña
-        <strong>1234</strong>
-      </p>
+        <form class="login-form" id="login-form">
+          <div class="form-group" style="margin-top:14px">
+            <label for="login-pass">PIN / Contraseña</label>
+            <input type="password" id="login-pass" placeholder="••••" autocomplete="current-password" required />
+          </div>
+          <p class="login-error" id="login-error"></p>
+          <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -117,15 +126,24 @@
 
       <form class="order-form" id="order-form">
 
-        <!-- Cliente -->
         <div class="form-section">
           <h3 class="form-section-title">
             <span class="form-section-icon">👤</span> Datos del Cliente
           </h3>
           <div class="form-row">
             <div class="form-group">
-              <label for="f-nombre">Nombre completo <span class="required">*</span></label>
-              <input type="text" id="f-nombre" name="nombre" placeholder="Ej. María García" required />
+              <label for="f-nombre">Nombre(s) <span class="required">*</span></label>
+              <input type="text" id="f-nombre" name="nombre" placeholder="Ej. María" required />
+            </div>
+            <div class="form-group">
+              <label for="f-appaterno">Apellido paterno <span class="required">*</span></label>
+              <input type="text" id="f-appaterno" name="appaterno" placeholder="García" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-apmaterno">Apellido materno</label>
+              <input type="text" id="f-apmaterno" name="apmaterno" placeholder="López" />
             </div>
             <div class="form-group">
               <label for="f-telefono">Teléfono <span class="required">*</span></label>
@@ -159,23 +177,30 @@
               <label for="f-fecha">Fecha promesa <span class="required">*</span></label>
               <input type="datetime-local" id="f-fecha" name="fecha" required />
             </div>
-            <div class="form-group">
-              <label for="f-sucursal">Sucursal <span class="required">*</span></label>
-              <select id="f-sucursal" name="sucursal" required>
-                <option value="">Seleccionar...</option>
-                <option>Centro</option>
-                <option>Insurgentes</option>
-                <option>San Lorenzo</option>
-                <option>Axusco</option>
-                <option>Moctezuma</option>
-                <option>Zona Industrial</option>
-              </select>
-            </div>
           </div>
           <div class="form-group full-width">
             <label for="f-instrucciones">Instrucciones especiales</label>
             <textarea id="f-instrucciones" name="instrucciones" rows="3"
               placeholder="Ej. Ropa delicada, no usar suavizante, doblar camisas..."></textarea>
+          </div>
+        </div>
+
+        <!-- Dirección de entrega (solo domicilio) -->
+        <div class="form-section" id="domicilio-section" style="display:none">
+          <h3 class="form-section-title"><span class="form-section-icon">📍</span> Dirección de entrega</h3>
+          <div class="form-group full-width">
+            <label for="f-calle">Calle y número <span class="required">*</span></label>
+            <input type="text" id="f-calle" name="calle" placeholder="Ej. Av. Reforma 120" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-colonia">Colonia</label>
+              <input type="text" id="f-colonia" name="colonia" placeholder="Col. Centro" />
+            </div>
+            <div class="form-group">
+              <label for="f-referencias">Referencias</label>
+              <input type="text" id="f-referencias" name="referencias" placeholder="Entre calles, color de casa..." />
+            </div>
           </div>
         </div>
 
@@ -365,18 +390,10 @@
           <div class="form-section">
             <h3 class="form-section-title"><span class="form-section-icon">🫧</span> Máquina</h3>
             <div class="form-row">
-              <div class="form-group">
+              <div class="form-group full-width">
                 <label for="c-maquina">Seleccionar máquina libre <span class="required">*</span></label>
                 <select id="c-maquina" name="maquina" required>
                   <option value="">Seleccionar máquina libre...</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="c-sucursal">Sucursal <span class="required">*</span></label>
-                <select id="c-sucursal" name="sucursal" required>
-                  <option value="">Seleccionar...</option>
-                  <option>Centro</option><option>Insurgentes</option><option>San Lorenzo</option>
-                  <option>Axusco</option><option>Moctezuma</option><option>Zona Industrial</option>
                 </select>
               </div>
             </div>
@@ -385,6 +402,7 @@
               <div class="precio-row total"><span>Precio del ciclo:</span><strong id="cp-precio">—</strong></div>
             </div>
           </div>
+
 
           <div class="form-section">
             <h3 class="form-section-title"><span class="form-section-icon">👤</span> Cliente <span style="font-size:.78rem;font-weight:400;color:var(--neutral-400)">(opcional)</span></h3>
@@ -697,6 +715,18 @@
             <div class="form-group">
               <label for="cfg-precio">Precio por ciclo ($)</label>
               <input type="number" id="cfg-precio" placeholder="0.00" min="0" step="0.50" />
+            </div>
+            <div class="form-group">
+              <label for="cfg-sucursal">Sucursal</label>
+              <select id="cfg-sucursal">
+                <option value="">Todas</option>
+                <option value="centro">Centro</option>
+                <option value="insurgentes">Insurgentes</option>
+                <option value="san-lorenzo">San Lorenzo</option>
+                <option value="axusco">Axusco</option>
+                <option value="moctezuma">Moctezuma</option>
+                <option value="industrial">Zona Industrial</option>
+              </select>
             </div>
             <div class="form-group" style="flex:0">
               <button class="btn btn-primary" id="cfg-add-btn" type="button">+ Agregar</button>
