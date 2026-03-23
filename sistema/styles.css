@@ -724,7 +724,19 @@ input, select, textarea, button {
 }
 .ticket-row span:first-child { color: var(--neutral-500); }
 .ticket-row span:last-child  { font-weight: 700; color: var(--neutral-900); text-align: right; }
+.ticket-row.total-row {
+  font-size: 1rem;
+  font-weight: 800;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1.5px dashed var(--neutral-300);
+}
+.ticket-row.total-row span:first-child { color: var(--neutral-700); font-weight: 700; }
+.ticket-row.total-row strong { color: var(--blue-600); font-size: 1.1rem; }
+.ticket-divider { border: none; border-top: 1px solid var(--neutral-100); margin: 8px 0; }
+.ticket-id-label { text-align:center; font-family:monospace; font-size:.8rem; margin-top:4px; color:var(--neutral-500); font-weight:700; }
 .ticket-qr { text-align: center; margin: 12px 0; }
+
 .ticket-qr canvas { margin: 0 auto; }
 .ticket-footer { text-align: center; color: var(--neutral-500); font-size: .78rem; margin-top: 8px; }
 .ticket-actions { display: flex; gap: 10px; margin-top: 16px; }
@@ -825,6 +837,397 @@ input, select, textarea, button {
   color: var(--neutral-900);
 }
 
+
+/* ===== SUB-TABS (Renta) ===== */
+.sub-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--neutral-200);
+  margin-bottom: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.sub-tabs::-webkit-scrollbar { display: none; }
+.sub-tab {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  padding: 10px 16px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--neutral-500);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.sub-tab.active { color: var(--blue-500); border-bottom-color: var(--blue-500); }
+.sub-tab:hover:not(.active) { color: var(--neutral-700); background: var(--neutral-50); }
+.sub-panel { display: none; }
+.sub-panel.active { display: block; }
+
+/* ===== MACHINE SUMMARY CHIPS ===== */
+.machine-summary-chips {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.msummary-chip {
+  flex: 1;
+  min-width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--neutral-600);
+}
+.msummary-chip.libre   { border-color: var(--green-600); background: var(--green-50); }
+.msummary-chip.en-uso  { border-color: var(--gold-400);  background: var(--gold-50); }
+.msummary-chip.total   { border-color: var(--neutral-300); background: var(--neutral-50); }
+.msummary-chip.ciclos  { border-color: var(--blue-400); background: var(--blue-50); }
+.msum-num {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  line-height: 1;
+  color: var(--neutral-900);
+}
+
+/* ===== MACHINES BOARD ===== */
+.machines-board {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 500px) { .machines-board { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 800px) { .machines-board { grid-template-columns: repeat(4, 1fr); } }
+
+.machine-card {
+  background: var(--white);
+  border: 2px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  position: relative;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.machine-card.libre    { border-color: var(--green-600); cursor: pointer; }
+.machine-card.libre:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.machine-card.en-uso   { border-color: var(--gold-400); background: var(--gold-50); cursor: pointer; }
+
+.machine-status-dot {
+  position: absolute; top: 10px; right: 10px;
+  width: 9px; height: 9px; border-radius: 50%;
+}
+.machine-card.libre  .machine-status-dot { background: var(--green-600); }
+.machine-card.en-uso .machine-status-dot { background: var(--gold-500); }
+
+.machine-icon     { font-size: 2rem; line-height: 1; }
+.machine-capacity { font-family: var(--font-heading); font-size: 1.05rem; font-weight: 800; color: var(--neutral-900); line-height: 1; }
+.machine-capacity span { font-size: .7rem; font-weight: 600; color: var(--neutral-500); }
+.machine-model    { font-size: .73rem; color: var(--neutral-500); }
+.machine-rate     { font-size: .78rem; font-weight: 700; color: var(--blue-600); }
+
+.machine-status-label {
+  font-size: .67rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  padding: 2px 10px; border-radius: 100px;
+}
+.machine-card.libre  .machine-status-label { background: var(--green-50); color: var(--green-600); }
+.machine-card.en-uso .machine-status-label { background: var(--gold-50);  color: var(--gold-500); }
+
+.machine-client-tag {
+  font-size: .72rem; font-weight: 600; color: var(--gold-500);
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ===== CICLO PRICE BOX ===== */
+.ciclo-precio-box {
+  background: var(--blue-50);
+  border: 1.5px solid var(--blue-400);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-top: 12px;
+}
+.precio-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: .87rem;
+  color: var(--neutral-600);
+  margin-bottom: 4px;
+}
+.precio-row strong { color: var(--neutral-900); font-weight: 700; }
+.precio-row.total {
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--blue-300);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.precio-row.total strong { color: var(--blue-600); font-size: 1.1rem; }
+
+/* ===== HISTORIAL KPIs ===== */
+.historial-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+@media (max-width: 480px) { .historial-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+.h-kpi {
+  background: var(--white);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.h-kpi.cash { border-color: var(--blue-400); background: var(--blue-50); }
+.h-kpi-val   { font-size: 1.25rem; font-weight: 800; font-family: var(--font-heading); color: var(--neutral-900); }
+.h-kpi-label { font-size: .7rem; font-weight: 600; color: var(--neutral-500); }
+.h-kpi.cash .h-kpi-val { color: var(--blue-600); }
+
+/* ===== CYCLES LIST ===== */
+.cycles-list { display: flex; flex-direction: column; gap: 8px; }
+
+/* ===== CONFIG MACHINES LIST ===== */
+.add-machine-form { margin-bottom: 16px; }
+.cfg-machines-list { display: flex; flex-direction: column; gap: 8px; }
+.cfg-machine-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--white);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+.cfg-machine-info { display: flex; flex-direction: column; gap: 2px; }
+.cfg-machine-name { font-weight: 700; font-size: .92rem; color: var(--neutral-900); }
+.cfg-machine-meta { font-size: .75rem; color: var(--neutral-500); }
+.cfg-machine-actions { display: flex; gap: 6px; }
+.btn-sm { padding: 5px 10px; font-size: .8rem; }
+
+/* ===== RENTAL CARDS (reused from cycles list) ===== */
+.rentals-list { display: flex; flex-direction: column; gap: 10px; }
+.rental-card {
+  background: var(--white);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.rental-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+.rental-card.activa::before   { background: var(--gold-400); }
+.rental-card.devuelta::before { background: var(--green-600); }
+.rental-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.rental-folio  { font-size: .72rem; font-weight: 700; color: var(--neutral-500); font-family: monospace; }
+.rental-client { font-weight: 700; font-size: .95rem; color: var(--neutral-900); }
+.rental-machine { font-size: .8rem; color: var(--neutral-500); margin-top: 2px; }
+.rental-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--neutral-100);
+  font-size: .78rem;
+  color: var(--neutral-500);
+}
+.status-badge.status-activa   { background: var(--gold-50);   color: var(--gold-500); }
+.status-badge.status-devuelta { background: var(--green-50);  color: var(--green-600); }
+
+
+
+/* ===== MACHINES TOOLBAR ===== */
+.machines-toolbar { margin-bottom: 14px; }
+.machines-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 1.5px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  transition: border-color var(--transition);
+}
+.machines-search:focus-within { border-color: var(--blue-500); }
+.machines-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: .9rem;
+  background: transparent;
+  color: var(--neutral-900);
+}
+
+/* ===== MACHINES GRID ===== */
+.machines-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 600px) {
+  .machines-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 900px) {
+  .machines-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.machine-card {
+  background: var(--white);
+  border: 1.5px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  position: relative;
+}
+.machine-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.machine-card.disponible { border-color: var(--neutral-200); }
+.machine-card.rentada { border-color: var(--gold-400); background: var(--gold-50); }
+.machine-card.mantenimiento { border-color: var(--red-500); background: var(--red-50); opacity: .8; }
+
+.machine-icon { font-size: 2.2rem; line-height: 1; }
+.machine-capacity {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--neutral-900);
+  line-height: 1;
+}
+.machine-capacity span { font-size: .72rem; font-weight: 600; color: var(--neutral-500); }
+.machine-model { font-size: .75rem; color: var(--neutral-500); }
+.machine-rate { font-size: .78rem; font-weight: 700; color: var(--blue-600); }
+
+.machine-status-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.machine-card.disponible .machine-status-dot    { background: var(--green-600); }
+.machine-card.rentada .machine-status-dot       { background: var(--gold-500); }
+.machine-card.mantenimiento .machine-status-dot { background: var(--red-500); }
+
+.machine-status-label {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+.disponible .machine-status-label  { background: var(--green-50); color: var(--green-600); }
+.rentada .machine-status-label     { background: var(--gold-50); color: var(--gold-500); }
+.mantenimiento .machine-status-label { background: var(--red-50); color: var(--red-500); }
+
+/* ===== RENTAL ESTIMATE ===== */
+.renta-estimate {
+  background: var(--blue-50);
+  border: 1.5px solid var(--blue-400);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-top: 14px;
+}
+.estimate-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: .87rem;
+  color: var(--neutral-600);
+  margin-bottom: 6px;
+}
+.estimate-row strong { color: var(--neutral-900); font-weight: 700; }
+.estimate-row.total {
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--blue-400);
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--neutral-900);
+}
+.estimate-row.total strong { color: var(--blue-600); font-size: 1.05rem; }
+
+/* ===== RENTALS LIST ===== */
+.rentals-list { display: flex; flex-direction: column; gap: 10px; }
+.rental-card {
+  background: var(--white);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.rental-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+.rental-card.activa::before   { background: var(--blue-500); }
+.rental-card.vencida::before  { background: var(--red-500); }
+.rental-card.devuelta::before { background: var(--green-600); }
+.rental-card:active { transform: scale(.985); }
+.rental-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.rental-folio { font-size: .72rem; font-weight: 700; color: var(--neutral-500); font-family: monospace; }
+.rental-client { font-weight: 700; font-size: .98rem; color: var(--neutral-900); }
+.rental-machine { font-size: .82rem; color: var(--neutral-500); margin-top: 2px; }
+.rental-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--neutral-100);
+  font-size: .78rem;
+  color: var(--neutral-500);
+}
+.rental-card-footer .overdue { color: var(--red-500); font-weight: 600; }
+
+.status-badge.status-activa   { background: #dbeafe; color: var(--blue-600); }
+.status-badge.status-vencida  { background: var(--red-50); color: var(--red-500); }
+.status-badge.status-devuelta { background: var(--green-50); color: var(--green-600); }
 
 /* Cuts list */
 .cuts-list { display: flex; flex-direction: column; gap: 10px; }

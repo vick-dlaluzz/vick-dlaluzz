@@ -117,7 +117,11 @@ function initApp() {
   // Setup monitoreo (admin only)
   if (currentUser.role === 'admin') {
     setupMonitoreo();
+    setupConfigTab();
   }
+
+  // Setup renta de máquinas
+  setupRenta();
 
   // Setup order detail modal close
   document.getElementById('modal-overlay').addEventListener('click', closeOrderModal);
@@ -138,24 +142,75 @@ function setupTabs() {
 
       if (target === 'pedidos') renderOrders();
       if (target === 'monitoreo') refreshMonitoreo();
+      if (target === 'config') setupConfigTab();
     });
   });
+}
+
+// ============================================
+//  PRICING HELPERS
+// ============================================
+const DEFAULT_PRICES = { kilo: 12, express: 80, domicilio: 100 };
+
+function loadPrices() {
+  try { return { ...DEFAULT_PRICES, ...JSON.parse(localStorage.getItem('fw_prices') || '{}') }; }
+  catch { return { ...DEFAULT_PRICES }; }
+}
+function savePrices(p) { localStorage.setItem('fw_prices', JSON.stringify(p)); }
+
+function calcOrderTotal(servicio, peso) {
+  const p = loadPrices();
+  if (servicio === 'kilo') {
+    const kg = parseFloat(peso) || 0;
+    return kg > 0 ? kg * p.kilo : null;
+  }
+  if (servicio === 'express')   return p.express;
+  if (servicio === 'domicilio') return p.domicilio;
+  return null;
 }
 
 // ============================================
 //  NUEVA ORDEN FORM
 // ============================================
 function setupOrderForm() {
-  const form = document.getElementById('order-form');
+  const form         = document.getElementById('order-form');
+  const servicioSel  = document.getElementById('f-servicio');
+  const pesoInput    = document.getElementById('f-peso');
+  const estimateBox  = document.getElementById('order-estimate-box');
 
   // Pre-fill datetime to now + 8 hours
   const fechaInput = document.getElementById('f-fecha');
-  const def = new Date(Date.now() + 8 * 60 * 60 * 1000);
-  fechaInput.value = def.toISOString().slice(0, 16);
+  fechaInput.value = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16);
+
+  function updateOrderEstimate() {
+    const p       = loadPrices();
+    const serv    = servicioSel.value;
+    const kg      = parseFloat(pesoInput.value) || 0;
+    const total   = calcOrderTotal(serv, kg);
+    if (!serv || total === null) { estimateBox.style.display = 'none'; return; }
+
+    const label = document.getElementById('oe-label');
+    const desglose = document.getElementById('oe-desglose');
+    const totalEl  = document.getElementById('oe-total');
+
+    if (serv === 'kilo') {
+      label.textContent    = `${kg} kg × $${p.kilo}/kg`;
+      desglose.textContent = `= $${total.toFixed(2)}`;
+    } else {
+      label.textContent    = 'Precio fijo';
+      desglose.textContent = '';
+    }
+    totalEl.textContent = '$' + total.toFixed(2);
+    estimateBox.style.display = 'block';
+  }
+
+  servicioSel.addEventListener('change', updateOrderEstimate);
+  pesoInput.addEventListener('input', updateOrderEstimate);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(form));
+    const data  = Object.fromEntries(new FormData(form));
+    const total = calcOrderTotal(data.servicio, data.peso);
     const order = {
       id:           genId(),
       nombre:       data.nombre,
@@ -166,15 +221,16 @@ function setupOrderForm() {
       sucursal:     data.sucursal,
       instrucciones:data.instrucciones || '',
       pago:         data.pago,
+      total:        total,
       status:       'pendiente',
       creado:       new Date().toISOString(),
       creadoPor:    currentUser.name,
     };
     orders.unshift(order);
     saveOrders();
+    estimateBox.style.display = 'none';
     showTicket(order);
     form.reset();
-    // Reset datetime
     fechaInput.value = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16);
   });
 }
@@ -203,6 +259,7 @@ function showTicket(order) {
     <div class="ticket-row"><span>Sucursal</span><span>${order.sucursal}</span></div>
     <div class="ticket-row"><span>Pago</span><span>${order.pago}</span></div>
     ${order.instrucciones ? `<div class="ticket-row"><span>Notas</span><span>${order.instrucciones}</span></div>` : ''}
+    ${order.total != null ? `<div class="ticket-divider"></div><div class="ticket-row total-row"><span>Total</span><strong>$${order.total.toFixed(2)}</strong></div>` : ''}
   `;
 
   // Generate QR code (simple text fallback using canvas)
@@ -421,6 +478,38 @@ function closeOrderModal() {
 }
 
 // ============================================
+//  CONFIG TAB (ADMIN)
+// ============================================
+let configTabInitialized = false;
+function setupConfigTab() {
+  if (configTabInitialized) return;
+  configTabInitialized = true;
+  setupPricingConfig();
+  setupConfigMachines();
+}
+
+// ============================================
+//  PRICING CONFIG (ADMIN)
+// ============================================
+function setupPricingConfig() {
+  const p = loadPrices();
+  document.getElementById('price-kilo').value      = p.kilo;
+  document.getElementById('price-express').value   = p.express;
+  document.getElementById('price-domicilio').value = p.domicilio;
+
+  document.getElementById('prices-save-btn').addEventListener('click', () => {
+    const kilo      = parseFloat(document.getElementById('price-kilo').value);
+    const express   = parseFloat(document.getElementById('price-express').value);
+    const domicilio = parseFloat(document.getElementById('price-domicilio').value);
+    if (isNaN(kilo) || isNaN(express) || isNaN(domicilio) || kilo < 0 || express < 0 || domicilio < 0) {
+      showToast('⚠️ Ingresa precios válidos'); return;
+    }
+    savePrices({ kilo, express, domicilio });
+    showToast('✅ Precios guardados');
+  });
+}
+
+// ============================================
 //  MONITOREO (ADMIN)
 // ============================================
 function setupMonitoreo() {
@@ -494,12 +583,8 @@ function refreshMonitoreo() {
   document.getElementById('kpi-delivered').textContent = todayOrders.filter(o => o.status === 'entregado').length;
   document.getElementById('kpi-pending').textContent   = todayOrders.filter(o => o.status === 'pendiente' || o.status === 'proceso').length;
 
-  // Revenue estimate (fictitious prices)
-  const PRICES = { kilo: 20, express: 35, domicilio: 40 };
-  const revenue = todayOrders.reduce((sum, o) => {
-    const base = PRICES[o.servicio] || 20;
-    return sum + base * (parseFloat(o.peso) || 3);
-  }, 0);
+  // Revenue — sum of saved order.total values
+  const revenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
   document.getElementById('kpi-revenue').textContent = '$' + revenue.toFixed(0);
 
   // Breakdown bars
@@ -654,3 +739,762 @@ function seedDemoOrders() {
 
 // Run seed on load
 seedDemoOrders();
+
+// ============================================
+//  RENTA DE MÁQUINAS — CICLO EN SITIO
+// ============================================
+
+// Default machine catalog if none stored
+const DEFAULT_MACHINES_CFG = [
+  { id: 'M001', nombre: 'Lavadora A1', kg: 5,  precio: 20 },
+  { id: 'M002', nombre: 'Lavadora A2', kg: 5,  precio: 20 },
+  { id: 'M003', nombre: 'Lavadora B1', kg: 8,  precio: 30 },
+  { id: 'M004', nombre: 'Lavadora B2', kg: 8,  precio: 30 },
+  { id: 'M005', nombre: 'Lavadora C1', kg: 10, precio: 40 },
+  { id: 'M006', nombre: 'Lavadora C2', kg: 10, precio: 40 },
+  { id: 'M007', nombre: 'Lavadora D1', kg: 15, precio: 60 },
+];
+
+let machinesCfg  = loadMachinesCfg();   // configurable catalog
+let cycles       = loadCycles();         // completed / active cycle records
+let activeHFilter = 'hoy';
+let endCycleTargetId = null;            // machine id being ended
+
+function loadMachinesCfg() {
+  try { return JSON.parse(localStorage.getItem('fw_machines') || 'null') || DEFAULT_MACHINES_CFG.map(m => ({...m})); }
+  catch { return DEFAULT_MACHINES_CFG.map(m => ({...m})); }
+}
+function saveMachinesCfg() { localStorage.setItem('fw_machines', JSON.stringify(machinesCfg)); }
+
+function loadCycles() {
+  try { return JSON.parse(localStorage.getItem('fw_cycles') || '[]'); } catch { return []; }
+}
+function saveCycles() { localStorage.setItem('fw_cycles', JSON.stringify(cycles)); }
+
+// ---- Main setup ----
+function setupRenta() {
+  setupSubTabs();
+  populateCicloSelect();
+  setupCicloForm();
+  renderMachinesBoard();
+  renderMachineSummary();
+  setupHistorialFilters();
+  renderHistorial();
+  setupEndCycleModal();
+}
+
+// ---- Sub-tabs ----
+function setupSubTabs() {
+  document.querySelectorAll('.sub-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.sub;
+      document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('sub-' + target).classList.add('active');
+      if (target === 'maquinas')  { renderMachinesBoard(); renderMachineSummary(); }
+      if (target === 'ciclo')     populateCicloSelect();
+      if (target === 'historial') renderHistorial();
+    });
+  });
+}
+
+// ---- Machine status helpers ----
+function getMachineStatus(m) {
+  // A machine is "en-uso" if there's an active cycle for it
+  return cycles.some(c => c.machineId === m.id && c.status === 'en-uso') ? 'en-uso' : 'libre';
+}
+
+// ---- Machines Board (real-time status) ----
+function renderMachinesBoard() {
+  const board = document.getElementById('machines-board');
+  if (machinesCfg.length === 0) {
+    board.innerHTML = '<p class="no-data">No hay máquinas configuradas. Ve a la pestaña ⚙️ Configurar.</p>';
+    return;
+  }
+  board.innerHTML = machinesCfg.map(m => {
+    const status = getMachineStatus(m);
+    const isLibre = status === 'libre';
+    const activeCycle = isLibre ? null : cycles.find(c => c.machineId === m.id && c.status === 'en-uso');
+    return `
+    <div class="machine-card ${status}" data-mid="${m.id}" ${isLibre ? 'title="Toca para iniciar ciclo"' : ''}>
+      <div class="machine-status-dot"></div>
+      <div class="machine-icon">🫧</div>
+      <div class="machine-capacity">${m.kg}<span> kg</span></div>
+      <div class="machine-model">${m.nombre}</div>
+      <div class="machine-rate">$${m.precio}/ciclo</div>
+      <div class="machine-status-label">${isLibre ? 'Libre' : 'En uso'}</div>
+      ${activeCycle ? `<div class="machine-client-tag">${activeCycle.nombre || 'Cliente'}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // Free machines → go to ciclo tab pre-filled
+  board.querySelectorAll('.machine-card.libre').forEach(card => {
+    card.addEventListener('click', () => {
+      const m = machinesCfg.find(x => x.id === card.dataset.mid);
+      if (!m) return;
+      document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-sub="ciclo"]').classList.add('active');
+      document.getElementById('sub-ciclo').classList.add('active');
+      populateCicloSelect();
+      document.getElementById('c-maquina').value = m.id;
+      updateCicloPrecio();
+    });
+  });
+
+  // Busy machines → show end cycle modal
+  board.querySelectorAll('.machine-card.en-uso').forEach(card => {
+    card.addEventListener('click', () => openEndCycleModal(card.dataset.mid));
+  });
+}
+
+function renderMachineSummary() {
+  const total  = machinesCfg.length;
+  const enUso  = machinesCfg.filter(m => getMachineStatus(m) === 'en-uso').length;
+  const libres = total - enUso;
+  const hoy    = ciclosHoy().length;
+  document.getElementById('machine-summary').innerHTML = `
+    <div class="machine-summary-chips">
+      <div class="msummary-chip libre"><span class="msum-num">${libres}</span><span>Libres</span></div>
+      <div class="msummary-chip en-uso"><span class="msum-num">${enUso}</span><span>En uso</span></div>
+      <div class="msummary-chip total"><span class="msum-num">${total}</span><span>Total</span></div>
+      <div class="msummary-chip ciclos"><span class="msum-num">${hoy}</span><span>Ciclos hoy</span></div>
+    </div>`;
+}
+
+// ---- Iniciar Ciclo Form ----
+function populateCicloSelect() {
+  const sel = document.getElementById('c-maquina');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Seleccionar máquina libre...</option>';
+  machinesCfg.filter(m => getMachineStatus(m) === 'libre').forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = `${m.nombre} – ${m.kg} kg — $${m.precio}`;
+    sel.appendChild(opt);
+  });
+  if (prev) sel.value = prev;
+  updateCicloPrecio();
+}
+
+function updateCicloPrecio() {
+  const mid   = document.getElementById('c-maquina').value;
+  const box   = document.getElementById('ciclo-precio-box');
+  const sBtn  = document.getElementById('ciclo-submit-btn');
+  if (!mid) { box.style.display = 'none'; sBtn.disabled = true; return; }
+  const m = machinesCfg.find(x => x.id === mid);
+  if (!m) return;
+  document.getElementById('cp-capacidad').textContent = m.kg + ' kg';
+  document.getElementById('cp-precio').textContent    = '$' + m.precio.toFixed(2);
+  box.style.display = 'block';
+  sBtn.disabled = false;
+}
+
+function setupCicloForm() {
+  document.getElementById('c-maquina').addEventListener('change', updateCicloPrecio);
+
+  document.getElementById('ciclo-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const mid      = document.getElementById('c-maquina').value;
+    const sucursal = document.getElementById('c-sucursal').value;
+    const nombre   = document.getElementById('c-nombre').value.trim();
+    const telefono = document.getElementById('c-telefono').value.trim();
+    const pago     = document.querySelector('[name="c-pago"]:checked')?.value || 'efectivo';
+
+    if (!mid || !sucursal) { showToast('⚠️ Selecciona máquina y sucursal'); return; }
+
+    const m = machinesCfg.find(x => x.id === mid);
+    if (!m) return;
+
+    const cycle = {
+      id:         'RC-' + Date.now().toString(36).toUpperCase().slice(-5),
+      machineId:  m.id,
+      maquina:    m.nombre,
+      kg:         m.kg,
+      precio:     m.precio,
+      nombre:     nombre || 'Sin nombre',
+      telefono:   telefono || '',
+      sucursal:   sucursal,
+      pago:       pago,
+      inicio:     new Date().toISOString(),
+      fin:        null,
+      status:     'en-uso',
+      creadoPor:  currentUser.name,
+    };
+
+    cycles.unshift(cycle);
+    saveCycles();
+    document.getElementById('ciclo-form').reset();
+    document.getElementById('ciclo-precio-box').style.display = 'none';
+    document.getElementById('ciclo-submit-btn').disabled = true;
+    populateCicloSelect();
+
+    showToast('▶️ Ciclo iniciado: ' + m.nombre);
+
+    // Show ticket first — board updates when ticket is closed
+    showCycleTicket(cycle);
+  });
+}
+
+// ---- End cycle modal ----
+function setupEndCycleModal() {
+  document.getElementById('end-cycle-overlay').addEventListener('click', closeEndCycleModal);
+  document.getElementById('end-cycle-close').addEventListener('click', closeEndCycleModal);
+  document.getElementById('end-cycle-cancel').addEventListener('click', closeEndCycleModal);
+  document.getElementById('end-cycle-confirm').addEventListener('click', () => {
+    if (!endCycleTargetId) return;
+    const cycle = cycles.find(c => c.machineId === endCycleTargetId && c.status === 'en-uso');
+    if (!cycle) return;
+    cycle.status = 'completado';
+    cycle.fin    = new Date().toISOString();
+    const start  = new Date(cycle.inicio);
+    const mins   = Math.round((new Date() - start) / 60000);
+    cycle.duracion = mins;
+    saveCycles();
+    closeEndCycleModal();
+    renderMachinesBoard();
+    renderMachineSummary();
+    populateCicloSelect();
+    renderHistorial();
+    showToast('✅ Ciclo finalizado: ' + cycle.maquina);
+  });
+}
+
+function openEndCycleModal(machineId) {
+  endCycleTargetId = machineId;
+  const cycle = cycles.find(c => c.machineId === machineId && c.status === 'en-uso');
+  if (!cycle) return;
+  const mins = Math.round((new Date() - new Date(cycle.inicio)) / 60000);
+  document.getElementById('end-cycle-body').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Máquina</span><span class="detail-value">${cycle.maquina} (${cycle.kg} kg)</span></div>
+    <div class="detail-row"><span class="detail-label">Cliente</span><span class="detail-value">${cycle.nombre}</span></div>
+    ${cycle.telefono ? `<div class="detail-row"><span class="detail-label">Tel.</span><span class="detail-value">${cycle.telefono}</span></div>` : ''}
+    <div class="detail-row"><span class="detail-label">Inicio</span><span class="detail-value">${fmtDate(cycle.inicio)}</span></div>
+    <div class="detail-row"><span class="detail-label">Tiempo</span><span class="detail-value">${mins} min</span></div>
+    <div class="detail-row"><span class="detail-label">Cobro</span><span class="detail-value" style="font-weight:800;color:var(--blue-600);font-size:1.05rem">$${cycle.precio.toFixed(2)}</span></div>
+    <div class="detail-row"><span class="detail-label">Pago</span><span class="detail-value">${cycle.pago}</span></div>
+  `;
+  document.getElementById('end-cycle-modal').style.display = 'flex';
+}
+
+function closeEndCycleModal() {
+  document.getElementById('end-cycle-modal').style.display = 'none';
+  endCycleTargetId = null;
+}
+
+// ---- Cycle ticket ----
+function showCycleTicket(cycle) {
+  const m      = machinesCfg.find(x => x.id === cycle.machineId) || {};
+  const fecha  = fmtDate(cycle.inicio);
+
+  document.getElementById('cycle-ticket-body').innerHTML = `
+    <div class="ticket-row"><span>Folio</span><strong>${cycle.id}</strong></div>
+    <div class="ticket-row"><span>Fecha</span><strong>${fecha}</strong></div>
+    <div class="ticket-divider"></div>
+    <div class="ticket-row"><span>Máquina</span><strong>${cycle.maquina}</strong></div>
+    <div class="ticket-row"><span>Capacidad</span><strong>${cycle.kg} kg</strong></div>
+    <div class="ticket-row"><span>Sucursal</span><strong>${cycle.sucursal}</strong></div>
+    <div class="ticket-divider"></div>
+    <div class="ticket-row"><span>Cliente</span><strong>${cycle.nombre}</strong></div>
+    ${cycle.telefono ? `<div class="ticket-row"><span>Teléfono</span><strong>${cycle.telefono}</strong></div>` : ''}
+    <div class="ticket-row"><span>Pago</span><strong>${cycle.pago}</strong></div>
+    <div class="ticket-divider"></div>
+    <div class="ticket-row total-row"><span>Total cobrado</span><strong>$${cycle.precio.toFixed(2)}</strong></div>
+    <div class="ticket-row"><span>Atendió</span><strong>${cycle.creadoPor}</strong></div>
+  `;
+
+  // QR with cycle ID
+  document.getElementById('cycle-ticket-qr').innerHTML =
+    `<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${cycle.id}" alt="QR ${cycle.id}" width="100" height="100" /><p class="ticket-id-label">${cycle.id}</p>`;
+
+  document.getElementById('cycle-ticket-modal').style.display = 'flex';
+
+  // Print button
+  document.getElementById('cycle-ticket-print').onclick = () => window.print();
+
+  // Close button → switch to board
+  document.getElementById('cycle-ticket-close').onclick = closeCycleTicket;
+  document.getElementById('cycle-ticket-overlay').onclick = closeCycleTicket;
+}
+
+function closeCycleTicket() {
+  document.getElementById('cycle-ticket-modal').style.display = 'none';
+  // Switch to board
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-sub="maquinas"]').classList.add('active');
+  document.getElementById('sub-maquinas').classList.add('active');
+  renderMachinesBoard();
+  renderMachineSummary();
+}
+
+// ---- Historial ----
+function ciclosHoy() {
+  const today = new Date().toISOString().slice(0, 10);
+  return cycles.filter(c => c.inicio.startsWith(today));
+}
+
+function setupHistorialFilters() {
+  document.getElementById('historial-search').addEventListener('input', renderHistorial);
+  document.querySelectorAll('[data-hfilter]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-hfilter]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeHFilter = chip.dataset.hfilter;
+      renderHistorial();
+    });
+  });
+}
+
+function renderHistorial() {
+  const q    = (document.getElementById('historial-search')?.value || '').toLowerCase();
+  const now  = new Date();
+  const today = now.toISOString().slice(0, 10);
+
+  let filtered = cycles.filter(c => {
+    if (activeHFilter === 'hoy')    return c.inicio.startsWith(today);
+    if (activeHFilter === 'semana') {
+      const weekAgo = new Date(now - 7 * 864e5).toISOString().slice(0, 10);
+      return c.inicio.slice(0, 10) >= weekAgo;
+    }
+    return true;
+  }).filter(c => {
+    if (!q) return true;
+    return c.id.toLowerCase().includes(q) ||
+      c.maquina.toLowerCase().includes(q) ||
+      c.nombre.toLowerCase().includes(q);
+  });
+
+  // Historial KPIs
+  const todayCycles = ciclosHoy();
+  const revenue     = todayCycles.filter(c => c.status === 'completado').reduce((s, c) => s + c.precio, 0);
+  document.getElementById('historial-kpis').innerHTML = `
+    <div class="historial-kpi-grid">
+      <div class="h-kpi"><span class="h-kpi-val">${todayCycles.length}</span><span class="h-kpi-label">Ciclos hoy</span></div>
+      <div class="h-kpi"><span class="h-kpi-val">${todayCycles.filter(c=>c.status==='completado').length}</span><span class="h-kpi-label">Completados</span></div>
+      <div class="h-kpi"><span class="h-kpi-val">${todayCycles.filter(c=>c.status==='en-uso').length}</span><span class="h-kpi-label">En uso ahora</span></div>
+      <div class="h-kpi cash"><span class="h-kpi-val">$${revenue.toFixed(0)}</span><span class="h-kpi-label">Ingreso del día</span></div>
+    </div>`;
+
+  const list = document.getElementById('cycles-list');
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span>🫧</span><p>Sin ciclos en este periodo.</p></div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => {
+    const isActive = c.status === 'en-uso';
+    const mins = c.fin
+      ? Math.round((new Date(c.fin) - new Date(c.inicio)) / 60000)
+      : Math.round((Date.now() - new Date(c.inicio)) / 60000);
+    return `
+    <div class="rental-card ${isActive ? 'activa' : 'devuelta'}">
+      <div class="rental-card-header">
+        <div>
+          <div class="rental-folio">${c.id}</div>
+          <div class="rental-client">🫧 ${c.maquina} (${c.kg} kg)</div>
+          <div class="rental-machine">👤 ${c.nombre} · ${c.sucursal}</div>
+        </div>
+        <span class="status-badge status-${isActive ? 'activa' : 'devuelta'}">${isActive ? 'En uso' : 'Completado'}</span>
+      </div>
+      <div class="rental-card-footer">
+        <span>${fmtDate(c.inicio)} · ${mins} min</span>
+        <span style="font-weight:700;color:var(--blue-600)">$${c.precio.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---- Configuración de máquinas (ADMIN) ----
+function setupConfigMachines() {
+  document.getElementById('cfg-add-btn').addEventListener('click', () => {
+    const nombre = document.getElementById('cfg-nombre').value.trim();
+    const kg     = parseFloat(document.getElementById('cfg-kg').value);
+    const precio = parseFloat(document.getElementById('cfg-precio').value);
+    if (!nombre || !kg || !precio) { showToast('⚠️ Completa todos los campos'); return; }
+
+    const newMachine = {
+      id:     'M' + Date.now().toString(36).toUpperCase().slice(-5),
+      nombre, kg, precio,
+    };
+    machinesCfg.push(newMachine);
+    saveMachinesCfg();
+    document.getElementById('cfg-nombre').value  = '';
+    document.getElementById('cfg-kg').value      = '';
+    document.getElementById('cfg-precio').value  = '';
+    renderConfigList();
+    renderMachinesBoard();
+    renderMachineSummary();
+    populateCicloSelect();
+    showToast('✅ Máquina agregada: ' + nombre);
+  });
+  renderConfigList();
+}
+
+function renderConfigList() {
+  const list = document.getElementById('cfg-machines-list');
+  if (machinesCfg.length === 0) {
+    list.innerHTML = '<p class="no-data">No hay máquinas. Agrega una arriba.</p>';
+    return;
+  }
+  list.innerHTML = machinesCfg.map(m => `
+    <div class="cfg-machine-row">
+      <div class="cfg-machine-info">
+        <span class="cfg-machine-name">${m.nombre}</span>
+        <span class="cfg-machine-meta">${m.kg} kg · $${m.precio}/ciclo</span>
+      </div>
+      <div class="cfg-machine-actions">
+        <button class="btn btn-ghost btn-sm cfg-edit-btn" data-mid="${m.id}">✏️</button>
+        <button class="btn btn-ghost btn-sm cfg-del-btn" data-mid="${m.id}" style="color:var(--red-500)">🗑</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Edit inline
+  list.querySelectorAll('.cfg-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const m = machinesCfg.find(x => x.id === btn.dataset.mid);
+      if (!m) return;
+      const newPrecio = parseFloat(prompt(`Nuevo precio por ciclo para ${m.nombre} (${m.kg} kg):`, m.precio));
+      if (isNaN(newPrecio) || newPrecio < 0) { showToast('⚠️ Precio inválido'); return; }
+      m.precio = newPrecio;
+      saveMachinesCfg();
+      renderConfigList();
+      renderMachinesBoard();
+      populateCicloSelect();
+      showToast('✅ Precio actualizado');
+    });
+  });
+
+  // Delete
+  list.querySelectorAll('.cfg-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const m = machinesCfg.find(x => x.id === btn.dataset.mid);
+      if (!m) return;
+      if (getMachineStatus(m) === 'en-uso') { showToast('⚠️ La máquina está en uso'); return; }
+      if (!confirm(`¿Eliminar "${m.nombre}"?`)) return;
+      machinesCfg = machinesCfg.filter(x => x.id !== m.id);
+      saveMachinesCfg();
+      renderConfigList();
+      renderMachinesBoard();
+      renderMachineSummary();
+      populateCicloSelect();
+      showToast('🗑 Máquina eliminada');
+    });
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function renderMachines(q = '', capFilter = 'all') {
+  const grid = document.getElementById('machines-grid');
+  let list = MACHINES.filter(m => {
+    const matchCap = capFilter === 'all' ||
+      (capFilter === '20' ? m.capacidad >= 20 : m.capacidad === parseInt(capFilter));
+    const matchQ = !q || m.modelo.toLowerCase().includes(q.toLowerCase()) ||
+      m.id.toLowerCase().includes(q.toLowerCase()) || String(m.capacidad).includes(q);
+    return matchCap && matchQ;
+  });
+
+  if (list.length === 0) {
+    grid.innerHTML = '<p class="no-data">No se encontraron máquinas.</p>';
+    return;
+  }
+  grid.innerHTML = list.map(m => `
+    <div class="machine-card ${m.estado}" data-id="${m.id}">
+      <div class="machine-status-dot"></div>
+      <div class="machine-icon">🫧</div>
+      <div class="machine-capacity">${m.capacidad}<span> kg</span></div>
+      <div class="machine-model">${m.modelo}</div>
+      <div class="machine-rate">$${m.tarifa}/día</div>
+      <div class="machine-status-label">${getMachineStatusLabel(m.estado)}</div>
+    </div>
+  `).join('');
+
+  // Click to quick-fill rental form
+  grid.querySelectorAll('.machine-card.disponible').forEach(card => {
+    card.addEventListener('click', () => {
+      const machine = MACHINES.find(m => m.id === card.dataset.id);
+      if (!machine) return;
+      // Switch to Nueva Renta sub-tab
+      document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-sub="nueva-renta"]').classList.add('active');
+      document.getElementById('sub-nueva-renta').classList.add('active');
+      // Fill machine select
+      const sel = document.getElementById('r-maquina');
+      sel.value = machine.id;
+      updateRentaEstimate();
+    });
+  });
+}
+
+function setupMachineFilters() {
+  document.getElementById('machine-search').addEventListener('input', e => {
+    renderMachines(e.target.value, activeMachineCapFilter);
+  });
+  document.getElementById('capacity-filters').addEventListener('click', e => {
+    const btn = e.target.closest('[data-cap]');
+    if (!btn) return;
+    document.querySelectorAll('#capacity-filters .chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    activeMachineCapFilter = btn.dataset.cap;
+    renderMachines(document.getElementById('machine-search').value, activeMachineCapFilter);
+  });
+}
+
+// ---- Rental form ----
+function setupRentaForm() {
+  const machSel = document.getElementById('r-maquina');
+  const durSel  = document.getElementById('r-duracion');
+
+  // Populate machine select with available machines
+  function populateMachineSelect() {
+    machSel.innerHTML = '<option value="">Seleccionar máquina disponible...</option>';
+    MACHINES.filter(m => m.estado === 'disponible').forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.id} – ${m.modelo} (${m.capacidad} kg) — $${m.tarifa}/día`;
+      machSel.appendChild(opt);
+    });
+  }
+  populateMachineSelect();
+
+  // Set default start date to today
+  document.getElementById('r-inicio').value = new Date().toISOString().slice(0, 10);
+
+  machSel.addEventListener('change', updateRentaEstimate);
+  durSel.addEventListener('change', updateRentaEstimate);
+
+  document.getElementById('renta-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(document.getElementById('renta-form')));
+    const machine = MACHINES.find(m => m.id === data.maquina);
+    if (!machine) return;
+
+    const dias = parseInt(data.duracion) || 1;
+    const fechaFin = new Date(data.inicio);
+    fechaFin.setDate(fechaFin.getDate() + dias);
+
+    const rental = {
+      id:         'RN-' + Date.now().toString(36).toUpperCase().slice(-5),
+      maquinaId:  machine.id,
+      maquina:    `${machine.modelo} (${machine.capacidad} kg)`,
+      capacidad:  machine.capacidad,
+      tarifa:     machine.tarifa,
+      nombre:     data.nombre,
+      telefono:   data.telefono,
+      domicilio:  data.domicilio || '',
+      ine:        data.ine || '',
+      sucursal:   data.sucursal,
+      inicio:     data.inicio,
+      dias:       dias,
+      fin:        fechaFin.toISOString().slice(0, 10),
+      total:      machine.tarifa * dias,
+      deposito:   parseFloat(data.deposito) || 0,
+      pago:       data['r-pago'],
+      notas:      data.notas || '',
+      status:     'activa',
+      registrado: new Date().toISOString(),
+      creadoPor:  currentUser.name,
+    };
+
+    // Mark machine as rented
+    machine.estado = 'rentada';
+
+    rentals.unshift(rental);
+    saveRentals();
+    document.getElementById('renta-form').reset();
+    document.getElementById('r-inicio').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('renta-estimate').style.display = 'none';
+    populateMachineSelect();
+    renderMachines(document.getElementById('machine-search').value, activeMachineCapFilter);
+    showToast('✅ Renta registrada: ' + rental.id);
+
+    // Switch to Rentas Activas
+    document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-sub="rentas-activas"]').classList.add('active');
+    document.getElementById('sub-rentas-activas').classList.add('active');
+    renderRentals();
+  });
+}
+
+function updateRentaEstimate() {
+  const machId = document.getElementById('r-maquina').value;
+  const dias   = parseInt(document.getElementById('r-duracion').value) || 0;
+  const panel  = document.getElementById('renta-estimate');
+
+  if (!machId || !dias) { panel.style.display = 'none'; return; }
+
+  const machine = MACHINES.find(m => m.id === machId);
+  if (!machine) return;
+
+  document.getElementById('est-capacidad').textContent = machine.capacidad + ' kg';
+  document.getElementById('est-tarifa').textContent    = '$' + machine.tarifa + '/día';
+  document.getElementById('est-dias').textContent      = dias + (dias === 1 ? ' día' : ' días');
+  document.getElementById('est-total').textContent     = '$' + (machine.tarifa * dias).toFixed(2);
+  panel.style.display = 'block';
+}
+
+// ---- Rentals list ----
+function getRentaStatus(r) {
+  if (r.status === 'devuelta') return 'devuelta';
+  if (new Date(r.fin) < new Date()) return 'vencida';
+  return 'activa';
+}
+function rentaStatusLabel(s) {
+  return { activa: 'Activa', vencida: 'Vencida', devuelta: 'Devuelta' }[s] || s;
+}
+
+function setupRentaSearch() {
+  document.getElementById('renta-search').addEventListener('input', renderRentals);
+  document.querySelectorAll('[data-rfilter]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-rfilter]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeRentaFilter = chip.dataset.rfilter;
+      renderRentals();
+    });
+  });
+}
+
+function renderRentals() {
+  const list = document.getElementById('rentals-list');
+  const q    = (document.getElementById('renta-search')?.value || '').toLowerCase();
+
+  let filtered = rentals.map(r => ({ ...r, computedStatus: getRentaStatus(r) })).filter(r => {
+    const match = activeRentaFilter === 'all' || r.computedStatus === activeRentaFilter;
+    const matchQ = !q || r.id.toLowerCase().includes(q) ||
+      r.nombre.toLowerCase().includes(q) || r.maquina.toLowerCase().includes(q);
+    return match && matchQ;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span>🫧</span><p>No hay rentas que mostrar.</p></div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => {
+    const s = r.computedStatus;
+    const isOverdue = s === 'vencida';
+    return `
+    <div class="rental-card ${s}" data-rid="${r.id}">
+      <div class="rental-card-header">
+        <div>
+          <div class="rental-folio">${r.id}</div>
+          <div class="rental-client">${r.nombre}</div>
+          <div class="rental-machine">🫧 ${r.maquina} · ${r.sucursal}</div>
+        </div>
+        <span class="status-badge status-${s}">${rentaStatusLabel(s)}</span>
+      </div>
+      <div class="rental-card-footer">
+        <span class="${isOverdue ? 'overdue' : ''}">📅 Vence: ${r.fin}${isOverdue ? ' ⚠️' : ''}</span>
+        <span style="font-weight:700;color:var(--blue-600)">$${r.total.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.rental-card').forEach(card => {
+    card.addEventListener('click', () => openRentaModal(card.dataset.rid));
+  });
+}
+
+// ---- Renta modal ----
+function setupRentaModal() {
+  document.getElementById('renta-modal-overlay').addEventListener('click', closeRentaModal);
+  document.getElementById('renta-modal-close').addEventListener('click', closeRentaModal);
+
+  document.getElementById('renta-return-btn').addEventListener('click', () => {
+    if (!openRentaId) return;
+    const rental = rentals.find(r => r.id === openRentaId);
+    if (!rental) return;
+    rental.status = 'devuelta';
+    rental.devueltoEn = new Date().toISOString();
+    // Free up the machine
+    const machine = MACHINES.find(m => m.id === rental.maquinaId);
+    if (machine) machine.estado = 'disponible';
+    saveRentals();
+    closeRentaModal();
+    renderRentals();
+    renderMachines(document.getElementById('machine-search').value, activeMachineCapFilter);
+    // Repopulate machine select
+    document.getElementById('r-maquina').innerHTML = '<option value="">Seleccionar máquina disponible...</option>';
+    MACHINES.filter(m => m.estado === 'disponible').forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.id} – ${m.modelo} (${m.capacidad} kg) — $${m.tarifa}/día`;
+      document.getElementById('r-maquina').appendChild(opt);
+    });
+    showToast('✅ Máquina marcada como devuelta');
+  });
+
+  document.getElementById('renta-extend-btn').addEventListener('click', () => {
+    if (!openRentaId) return;
+    const rental = rentals.find(r => r.id === openRentaId);
+    if (!rental || rental.status === 'devuelta') { showToast('⚠️ No se puede extender una renta devuelta'); return; }
+    // Extend by 7 days
+    const finDate = new Date(rental.fin);
+    finDate.setDate(finDate.getDate() + 7);
+    rental.fin  = finDate.toISOString().slice(0, 10);
+    rental.dias += 7;
+    rental.total = rental.tarifa * rental.dias;
+    saveRentals();
+    closeRentaModal();
+    renderRentals();
+    showToast('📅 Renta extendida 7 días más');
+  });
+}
+
+function openRentaModal(id) {
+  const rental = rentals.find(r => r.id === id);
+  if (!rental) return;
+  openRentaId = id;
+  const s = getRentaStatus(rental);
+
+  document.getElementById('renta-modal-title').textContent = 'Renta ' + rental.id;
+  document.getElementById('renta-modal-body').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Estado</span><span class="status-badge status-${s}">${rentaStatusLabel(s)}</span></div>
+    <div class="detail-row"><span class="detail-label">Cliente</span><span class="detail-value">${rental.nombre}</span></div>
+    <div class="detail-row"><span class="detail-label">Teléfono</span><span class="detail-value">${rental.telefono}</span></div>
+    ${rental.domicilio ? `<div class="detail-row"><span class="detail-label">Domicilio</span><span class="detail-value">${rental.domicilio}</span></div>` : ''}
+    ${rental.ine ? `<div class="detail-row"><span class="detail-label">INE</span><span class="detail-value">${rental.ine}</span></div>` : ''}
+    <div class="detail-row"><span class="detail-label">Máquina</span><span class="detail-value">${rental.maquina}</span></div>
+    <div class="detail-row"><span class="detail-label">Sucursal</span><span class="detail-value">${rental.sucursal}</span></div>
+    <div class="detail-row"><span class="detail-label">Inicio</span><span class="detail-value">${rental.inicio}</span></div>
+    <div class="detail-row"><span class="detail-label">Duración</span><span class="detail-value">${rental.dias} días</span></div>
+    <div class="detail-row"><span class="detail-label">Vence</span><span class="detail-value">${rental.fin}</span></div>
+    <div class="detail-row"><span class="detail-label">Tarifa diaria</span><span class="detail-value">$${rental.tarifa}/día</span></div>
+    <div class="detail-row"><span class="detail-label">Total</span><span class="detail-value" style="font-weight:800;color:var(--blue-600)">$${rental.total.toFixed(2)}</span></div>
+    <div class="detail-row"><span class="detail-label">Depósito</span><span class="detail-value">$${(rental.deposito||0).toFixed(2)}</span></div>
+    <div class="detail-row"><span class="detail-label">Pago</span><span class="detail-value">${rental.pago}</span></div>
+    ${rental.notas ? `<div class="detail-row"><span class="detail-label">Notas</span><span class="detail-value">${rental.notas}</span></div>` : ''}
+    <div class="detail-row"><span class="detail-label">Registrado</span><span class="detail-value">${fmtDate(rental.registrado)}</span></div>
+  `;
+
+  const returnBtn = document.getElementById('renta-return-btn');
+  returnBtn.style.display = rental.status === 'devuelta' ? 'none' : '';
+
+  document.getElementById('renta-detail-modal').style.display = 'flex';
+}
+
+function closeRentaModal() {
+  document.getElementById('renta-detail-modal').style.display = 'none';
+  openRentaId = null;
+}
+

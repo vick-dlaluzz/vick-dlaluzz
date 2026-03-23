@@ -86,11 +86,25 @@
         </svg>
         <span>Pedidos</span>
       </button>
+      <button class="tab-btn" data-tab="renta" id="tab-renta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M12 12v4M10 14h4"/>
+        </svg>
+        <span>Renta</span>
+      </button>
       <button class="tab-btn admin-only hidden" data-tab="monitoreo" id="tab-monitoreo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
         </svg>
         <span>Monitoreo</span>
+      </button>
+      <button class="tab-btn admin-only hidden" data-tab="config" id="tab-config">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+        <span>Configuración</span>
       </button>
     </nav>
 
@@ -163,6 +177,16 @@
             <textarea id="f-instrucciones" name="instrucciones" rows="3"
               placeholder="Ej. Ropa delicada, no usar suavizante, doblar camisas..."></textarea>
           </div>
+        </div>
+
+        <!-- Estimado de precio -->
+        <div class="form-section" id="order-estimate-box" style="display:none">
+          <h3 class="form-section-title"><span class="form-section-icon">💰</span> Precio estimado</h3>
+          <div class="ciclo-precio-box">
+            <div class="precio-row"><span id="oe-label">Precio</span><strong id="oe-desglose">—</strong></div>
+            <div class="precio-row total"><span>Total estimado</span><strong id="oe-total">—</strong></div>
+          </div>
+          <p style="font-size:.75rem;color:var(--neutral-500);margin-top:6px">* El precio final puede ajustarse al momento de la entrega según el peso real.</p>
         </div>
 
         <!-- Pago -->
@@ -312,12 +336,167 @@
       </div>
     </section>
 
+    <!-- ===================== TAB: RENTA DE MÁQUINAS ===================== -->
+    <section class="tab-panel" id="tab-panel-renta">
+      <div class="panel-header">
+        <h2>Renta de Máquinas</h2>
+        <p>Renta en sitio — un cobro por ciclo de lavado</p>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" data-sub="maquinas">🫧 Máquinas</button>
+        <button class="sub-tab" data-sub="ciclo">▶️ Iniciar Ciclo</button>
+        <button class="sub-tab" data-sub="historial">📋 Historial</button>
+        <button class="sub-tab admin-only hidden" data-sub="config-maquinas">⚙️ Configurar</button>
+      </div>
+
+      <!-- ===== SUB: TABLERO DE MÁQUINAS ===== -->
+      <div class="sub-panel active" id="sub-maquinas">
+        <div class="machine-summary" id="machine-summary"></div>
+        <div class="machines-board" id="machines-board">
+          <!-- Populated by JS: tap a libre machine to start cycle -->
+        </div>
+      </div>
+
+      <!-- ===== SUB: INICIAR CICLO ===== -->
+      <div class="sub-panel" id="sub-ciclo">
+        <form class="order-form" id="ciclo-form">
+          <div class="form-section">
+            <h3 class="form-section-title"><span class="form-section-icon">🫧</span> Máquina</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="c-maquina">Seleccionar máquina libre <span class="required">*</span></label>
+                <select id="c-maquina" name="maquina" required>
+                  <option value="">Seleccionar máquina libre...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="c-sucursal">Sucursal <span class="required">*</span></label>
+                <select id="c-sucursal" name="sucursal" required>
+                  <option value="">Seleccionar...</option>
+                  <option>Centro</option><option>Insurgentes</option><option>San Lorenzo</option>
+                  <option>Axusco</option><option>Moctezuma</option><option>Zona Industrial</option>
+                </select>
+              </div>
+            </div>
+            <div class="ciclo-precio-box" id="ciclo-precio-box" style="display:none">
+              <div class="precio-row"><span>Capacidad:</span><strong id="cp-capacidad">—</strong></div>
+              <div class="precio-row total"><span>Precio del ciclo:</span><strong id="cp-precio">—</strong></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title"><span class="form-section-icon">👤</span> Cliente <span style="font-size:.78rem;font-weight:400;color:var(--neutral-400)">(opcional)</span></h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="c-nombre">Nombre</label>
+                <input type="text" id="c-nombre" name="nombre" placeholder="Ej. María García" />
+              </div>
+              <div class="form-group">
+                <label for="c-telefono">Teléfono</label>
+                <input type="tel" id="c-telefono" name="telefono" placeholder="238 000 0000" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title"><span class="form-section-icon">💳</span> Pago</h3>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="c-pago" value="efectivo" checked />
+                <span class="radio-card"><span class="radio-icon">💵</span><span>Efectivo</span></span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="c-pago" value="transferencia" />
+                <span class="radio-card"><span class="radio-icon">📲</span><span>Transferencia</span></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="reset" class="btn btn-ghost">Limpiar</button>
+            <button type="submit" class="btn btn-primary" id="ciclo-submit-btn" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Iniciar Ciclo
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ===== SUB: HISTORIAL ===== -->
+      <div class="sub-panel" id="sub-historial">
+        <div class="search-bar-wrap">
+          <div class="search-bar">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" id="historial-search" placeholder="Buscar por máquina, cliente o folio..." />
+          </div>
+          <div class="filter-chips">
+            <button class="chip active" data-hfilter="hoy">Hoy</button>
+            <button class="chip" data-hfilter="semana">Esta semana</button>
+            <button class="chip" data-hfilter="todo">Todo</button>
+          </div>
+        </div>
+        <div class="historial-kpis" id="historial-kpis"></div>
+        <div class="cycles-list" id="cycles-list">
+          <div class="empty-state"><span>🫧</span><p>No hay ciclos registrados aún.</p></div>
+        </div>
+      </div>
+
+
+      <!-- Confirm end cycle modal -->
+      <!-- Confirm end cycle modal -->
+      <div class="order-detail-modal" id="end-cycle-modal" style="display:none">
+        <div class="modal-overlay" id="end-cycle-overlay"></div>
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>Finalizar Ciclo</h3>
+            <button class="icon-btn" id="end-cycle-close">✕</button>
+          </div>
+          <div class="modal-body" id="end-cycle-body"></div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" id="end-cycle-cancel">Cancelar</button>
+            <button class="btn btn-primary" id="end-cycle-confirm" style="background:var(--green-600)">✅ Confirmar fin</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket de ciclo de lavado -->
+      <div class="ticket-modal" id="cycle-ticket-modal" style="display:none">
+        <div class="ticket-overlay" id="cycle-ticket-overlay"></div>
+        <div class="ticket-card">
+          <div class="ticket-header">
+            <img src="../logo.jpeg" alt="WashTime" class="ticket-logo" />
+            <div>
+              <h3>WashTime</h3>
+              <p>Comprobante de Renta</p>
+            </div>
+          </div>
+          <div class="ticket-divider dotted"></div>
+          <div class="ticket-body" id="cycle-ticket-body"></div>
+          <div class="ticket-divider dotted"></div>
+          <div class="ticket-qr" id="cycle-ticket-qr"></div>
+          <div class="ticket-footer">
+            <p>¡Gracias por usar WashTime!</p>
+            <p>Tehuacán, Puebla</p>
+          </div>
+          <div class="ticket-actions">
+            <button class="btn btn-ghost" id="cycle-ticket-print">🖨️ Imprimir</button>
+            <button class="btn btn-primary" id="cycle-ticket-close">Cerrar</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
     <!-- ===================== TAB: MONITOREO (ADMIN) ===================== -->
     <section class="tab-panel" id="tab-panel-monitoreo">
       <div class="panel-header">
         <h2>Monitoreo</h2>
         <p>Panel de administración y reportes</p>
       </div>
+
 
       <!-- KPI Cards -->
       <div class="kpi-grid">
@@ -467,6 +646,64 @@
         <div class="activity-list" id="activity-list">
           <p class="no-data">Sin actividad hoy.</p>
         </div>
+      </div>
+
+    </section>
+
+    <!-- ===================== TAB: CONFIGURACIÓN (ADMIN) ===================== -->
+    <section class="tab-panel" id="tab-panel-config">
+      <div class="panel-header">
+        <h2>Configuración</h2>
+        <p>Administra precios y catálogo de máquinas</p>
+      </div>
+
+      <!-- Precios de servicio de lavandería -->
+      <div class="monitor-section">
+        <h3 class="monitor-section-title">💰 Precios de Servicio</h3>
+        <p style="font-size:.83rem;color:var(--neutral-500);margin-bottom:14px">El precio se usa para calcular el total estimado al registrar una orden.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="price-kilo">Lavado por kilo — precio/kg ($)</label>
+            <input type="number" id="price-kilo" placeholder="Ej. 12" min="0" step="0.5" />
+          </div>
+          <div class="form-group">
+            <label for="price-express">Express — precio fijo por orden ($)</label>
+            <input type="number" id="price-express" placeholder="Ej. 80" min="0" step="0.5" />
+          </div>
+          <div class="form-group">
+            <label for="price-domicilio">A domicilio — precio fijo por orden ($)</label>
+            <input type="number" id="price-domicilio" placeholder="Ej. 100" min="0" step="0.5" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="prices-save-btn">💾 Guardar precios</button>
+        </div>
+      </div>
+
+      <!-- Catálogo de máquinas para renta -->
+      <div class="monitor-section">
+        <h3 class="monitor-section-title">🫧 Catálogo de Máquinas (Renta)</h3>
+        <p style="font-size:.83rem;color:var(--neutral-500);margin-bottom:14px">Agrega, edita o elimina máquinas. El precio es por ciclo de lavado.</p>
+        <div class="add-machine-form">
+          <div class="form-row" style="align-items:flex-end">
+            <div class="form-group">
+              <label for="cfg-nombre">Nombre</label>
+              <input type="text" id="cfg-nombre" placeholder="Ej. Lavadora A1" />
+            </div>
+            <div class="form-group">
+              <label for="cfg-kg">Capacidad (kg)</label>
+              <input type="number" id="cfg-kg" placeholder="10" min="1" step="0.5" />
+            </div>
+            <div class="form-group">
+              <label for="cfg-precio">Precio por ciclo ($)</label>
+              <input type="number" id="cfg-precio" placeholder="0.00" min="0" step="0.50" />
+            </div>
+            <div class="form-group" style="flex:0">
+              <button class="btn btn-primary" id="cfg-add-btn" type="button">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-machines-list" id="cfg-machines-list"></div>
       </div>
 
     </section>
